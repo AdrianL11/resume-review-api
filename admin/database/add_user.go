@@ -4,6 +4,7 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 	aws_ses "resume-review-api/aws-ses"
 	email_templates "resume-review-api/email-templates"
 	"resume-review-api/mongodb"
@@ -36,7 +37,7 @@ func AddUser(currentUser primitive.ObjectID, emailAddress string, role mongodb.R
 	// Send Email
 	objId := result.InsertedID.(primitive.ObjectID)
 
-	aws_ses.SendEmailSES(email_templates.NewUserEmail("https://resume.trustp.pl/accept-invite/"+objId.Hex()), "You have been invited to Resume Reviewer!", "no-reply@trustp.pl", aws_ses.Recipient{
+	aws_ses.SendEmailSES(email_templates.NewUserEmail("https://"+os.Getenv("base_url")+"/accept-invite/"+objId.Hex()), "You have been invited to Resume Reviewer!", "no-reply@trustp.pl", aws_ses.Recipient{
 		ToEmails: []string{emailAddress},
 	})
 

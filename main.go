@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"net/http"
 	"os"
 	admin_routes "resume-review-api/admin/routes"
 	authentication_routes "resume-review-api/authentication/routes"
@@ -31,6 +32,11 @@ func main() {
 	e.Use(session.MiddlewareWithConfig(session.Config{
 		Store: sessions.NewCookieStore([]byte(os.Getenv("session_key"))),
 	}))
+
+	// Base
+	e.GET("/", func(c echo.Context) error {
+		return c.Redirect(http.StatusOK, os.Getenv("base_url"))
+	})
 
 	// Authentication Routes
 	e.POST("/login", authentication_routes.Login)
@@ -65,7 +71,10 @@ func main() {
 	}
 
 	// Start Server
-	e.Start(fmt.Sprintf(":%s", port))
+	err := e.Start(fmt.Sprintf(":%s", port))
+	if err != nil {
+		fmt.Println("Error Starting Server: " + err.Error())
+	}
 
 	/*
 		Paths:

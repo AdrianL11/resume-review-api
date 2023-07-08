@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 	aws_ses "resume-review-api/aws-ses"
 	email_templates "resume-review-api/email-templates"
 	"resume-review-api/mongodb"
@@ -49,7 +50,7 @@ func CreateForgotPassword(c echo.Context, emailAddress string) error {
 
 	// Send Forgot Password Email
 	aws_ses.SendEmailSES(
-		email_templates.ForgotPasswordTemplate("https://resume.trustp.pl/resetpassword/"+token, c.Request().UserAgent(), c.RealIP()),
+		email_templates.ForgotPasswordTemplate("https://"+os.Getenv("base_url")+"/resetpassword/"+token, c.Request().UserAgent(), c.RealIP()),
 		"Resume Reviewer - Forgot Password",
 		"no-reply@trustp.pl",
 		aws_ses.Recipient{
