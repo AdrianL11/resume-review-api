@@ -26,7 +26,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 
 	req, err := http.NewRequest("POST", URL, bytes.NewBuffer(jsonData))
 
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("openai-key"))
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("openai_key"))
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {

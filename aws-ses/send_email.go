@@ -21,7 +21,7 @@ func SendEmailSES(messageBody string, subject string, fromEmail string, recipien
 	// create new AWS session
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("ses-akid"), os.Getenv("ses-secret"), ""),
+		Credentials: credentials.NewStaticCredentials(os.Getenv("ses_akid"), os.Getenv("ses_secret"), ""),
 	})
 	if err != nil {
 		log.Println("Error occurred while creating aws session", err)

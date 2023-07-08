@@ -16,7 +16,7 @@ func getMongoClient() (*mongo.Client, error) {
 	var client *mongo.Client
 
 	opts := options.Client()
-	opts.ApplyURI(os.Getenv("mongodbconnection"))
+	opts.ApplyURI("mongodb+srv://" + os.Getenv("mongodb_username") + ":" + os.Getenv("mongodb_password") + "@" + os.Getenv("mongodb_url") + "/?retryWrites=true&w=majority")
 	opts.SetConnectTimeout(30 * time.Second)
 
 	if client, err = mongo.Connect(context.Background(), opts); err != nil {
