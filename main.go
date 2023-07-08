@@ -61,7 +61,7 @@ func main() {
 	// Set Server Port
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
-		port = "8085"
+		port = "80"
 	}
 
 	// Start Server
