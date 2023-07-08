@@ -35,7 +35,7 @@ func main() {
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
-		return c.Redirect(http.StatusOK, os.Getenv("base_url"))
+		return c.Redirect(http.StatusOK, "https://"+os.Getenv("base_url"))
 	})
 
 	// Authentication Routes
