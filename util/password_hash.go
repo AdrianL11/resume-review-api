@@ -1,13 +1,18 @@
 package util
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"crypto/sha256"
+	"golang.org/x/crypto/bcrypt"
+)
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	pwPreHash := sha256.Sum256([]byte(password))
+	bytes, err := bcrypt.GenerateFromPassword(pwPreHash[:], 14)
 	return string(bytes), err
 }
 
 func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	pwPreHash := sha256.Sum256([]byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(hash), pwPreHash[:])
 	return err == nil
 }

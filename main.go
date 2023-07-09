@@ -35,7 +35,7 @@ func main() {
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
-		return c.NoContent(http.StatusForbidden)
+		return c.String(http.StatusOK, "Version v 1.0.1")
 	})
 
 	// Authentication Routes
