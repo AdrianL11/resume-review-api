@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
 	admin_routes "resume-review-api/admin/routes"
@@ -32,6 +33,9 @@ func main() {
 	e.Use(session.MiddlewareWithConfig(session.Config{
 		Store: sessions.NewCookieStore([]byte(os.Getenv("session_key"))),
 	}))
+
+	// CORS Setup
+	e.Use(middleware.CORS())
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
@@ -67,7 +71,7 @@ func main() {
 	// Set Server Port
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
-		port = "80"
+		port = "8085"
 	}
 
 	// Start Server
