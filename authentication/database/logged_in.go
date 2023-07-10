@@ -1,8 +1,6 @@
-package session_db
+package authentication_db
 
 import (
-	"errors"
-	"fmt"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,26 +16,27 @@ type SessionValidation struct {
 }
 
 type SessionValidationUser struct {
-	ActiveUser bool `bson:"active_user" json:"active_user"`
+	ActiveUser bool   `bson:"active_user" json:"active_user"`
+	Role       string `bson:"role" json:"role"`
 }
 
-func ValidateSession(c echo.Context) error {
+func LoggedIn(c echo.Context) string {
 
 	// Check if Session is Valid from Cookie
 	sess, err := session.Get("_resumereview-tpl", c)
 	if err != nil {
-		return err
+		return ""
 	}
 
 	if sess.Values["email_address"] == nil || sess.Values["session_id"] == nil {
-		return errors.New("invalid session")
+		return ""
 	}
 
 	emailAddress := sess.Values["email_address"].(string)
 	sessionId := sess.Values["session_id"].(string)
 
 	if emailAddress == "" || sessionId == "" {
-		return errors.New("invalid session")
+		return ""
 	}
 
 	// Cooke is Good, Grab Information from Session
@@ -66,13 +65,12 @@ func ValidateSession(c echo.Context) error {
 	// Aggregate Groups Created, Lets Look Up
 	err = mongodb.Aggregate("resume_reviewer", "sessions", mongo.Pipeline{matchStage, lookupStage}, &mongoUser)
 	if err != nil {
-		fmt.Printf("Aggregate Error: %s\n", err.Error())
-		return err
+		return ""
 	}
 
 	// Any Results?
 	if len(mongoUser) <= 0 {
-		return errors.New("invalid session")
+		return ""
 	}
 
 	// Is Session Expired?
@@ -80,12 +78,12 @@ func ValidateSession(c echo.Context) error {
 	now := time.Now().UTC()
 
 	if now.After(expiration) {
-		return errors.New("invalid session")
+		return ""
 	}
 
 	// Is User Active?
 	if !mongoUser[0].UserInfo[0].ActiveUser {
-		return errors.New("not an active user")
+		return ""
 	}
 
 	// Update Session
@@ -97,9 +95,9 @@ func ValidateSession(c echo.Context) error {
 	}
 	err = mongodb.UpdateOne("resume_reviewer", "sessions", filter, update)
 	if err != nil {
-		return err
+		return ""
 	}
 
-	// Not Expired, Good
-	return nil
+	// Done
+	return mongoUser[0].UserInfo[0].Role
 }

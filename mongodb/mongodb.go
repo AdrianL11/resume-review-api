@@ -9,25 +9,40 @@ import (
 	"time"
 )
 
+var (
+	globalClient *mongo.Client
+)
+
 // getMongoClient – creates a session for mongoDB
 func getMongoClient() (*mongo.Client, error) {
 
 	var err error
-	var client *mongo.Client
 
 	opts := options.Client()
 	opts.ApplyURI("mongodb+srv://" + os.Getenv("mongodb_username") + ":" + os.Getenv("mongodb_password") + "@" + os.Getenv("mongodb_url") + "/?retryWrites=true&w=majority")
 	opts.SetConnectTimeout(30 * time.Second)
 
-	if client, err = mongo.Connect(context.Background(), opts); err != nil {
-		return client, err
+	// Check If Global is Set
+	if globalClient != nil {
+		// Check If Already Connected
+		if err = globalClient.Ping(context.Background(), nil); err != nil {
+			// Not Connected
+			if globalClient, err = mongo.Connect(context.Background(), opts); err != nil {
+				return globalClient, err
+			}
+		}
+	} else {
+		// No Global Set, Connect
+		if globalClient, err = mongo.Connect(context.Background(), opts); err != nil {
+			return globalClient, err
+		}
 	}
 
-	if err = client.Ping(context.Background(), nil); err != nil {
-		return client, err
+	if err = globalClient.Ping(context.Background(), nil); err != nil {
+		return globalClient, err
 	}
 
-	return client, err
+	return globalClient, err
 }
 
 // NewDocument – creates a new document in the mongoDB
@@ -43,9 +58,9 @@ func NewDocument(database string, collection string, document interface{}) (*mon
 	if client, err = getMongoClient(); err != nil {
 		return result, err
 	}
-	defer func(client *mongo.Client, ctx context.Context) {
-		_ = client.Disconnect(ctx)
-	}(client, ctx)
+	//defer func(client *mongo.Client, ctx context.Context) {
+	//	_ = client.Disconnect(ctx)
+	//}(client, ctx)
 
 	coll = client.Database(database).Collection(collection)
 	if result, err = coll.InsertOne(ctx, document); err != nil {
@@ -67,9 +82,9 @@ func FindOne(database string, collection string, filter interface{}, decode inte
 	if client, err = getMongoClient(); err != nil {
 		return err
 	}
-	defer func(client *mongo.Client, ctx context.Context) {
-		_ = client.Disconnect(ctx)
-	}(client, ctx)
+	//defer func(client *mongo.Client, ctx context.Context) {
+	//	_ = client.Disconnect(ctx)
+	//}(client, ctx)
 
 	coll = client.Database(database).Collection(collection)
 	if err = coll.FindOne(ctx, filter).Decode(decode); err != nil {
@@ -89,9 +104,9 @@ func FindMany(database string, collection string, filter interface{}, decode int
 	if client, err = getMongoClient(); err != nil {
 		return err
 	}
-	defer func(client *mongo.Client, ctx context.Context) {
-		_ = client.Disconnect(ctx)
-	}(client, ctx)
+	//defer func(client *mongo.Client, ctx context.Context) {
+	//	_ = client.Disconnect(ctx)
+	//}(client, ctx)
 
 	// Find
 	coll = client.Database(database).Collection(collection)
@@ -120,9 +135,9 @@ func UpdateOne(database string, collection string, filter interface{}, update in
 	if client, err = getMongoClient(); err != nil {
 		return err
 	}
-	defer func(client *mongo.Client, ctx context.Context) {
-		_ = client.Disconnect(ctx)
-	}(client, ctx)
+	//defer func(client *mongo.Client, ctx context.Context) {
+	//	_ = client.Disconnect(ctx)
+	//}(client, ctx)
 
 	coll = client.Database(database).Collection(collection)
 	if _, err = coll.UpdateOne(ctx, filter, bson.D{{"$set", update}}); err != nil {
@@ -145,9 +160,9 @@ func Aggregate(database string, collection string, pipeline interface{}, results
 	if client, err = getMongoClient(); err != nil {
 		return err
 	}
-	defer func(client *mongo.Client, ctx context.Context) {
-		_ = client.Disconnect(ctx)
-	}(client, ctx)
+	//defer func(client *mongo.Client, ctx context.Context) {
+	//	_ = client.Disconnect(ctx)
+	//}(client, ctx)
 
 	coll = client.Database(database).Collection(collection)
 
@@ -155,7 +170,7 @@ func Aggregate(database string, collection string, pipeline interface{}, results
 		return err
 	}
 
-	if err = cursor.All(context.TODO(), results); err != nil {
+	if err = cursor.All(ctx, results); err != nil {
 		return err
 	}
 

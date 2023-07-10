@@ -47,7 +47,7 @@ func ReviewResume(c echo.Context) error {
 
 	// Get JSON Object
 	var jsonObject = "{  \"name\": \"\",  \"email\": \"\",  \"phone\": \"\",  \"address\": \"\",  \"summary\": \"\",  \"skills\": [],  \"experiences\": [    {      \"company\": \"\",      \"location\": \"\",      \"dates\": \"\",      \"job_title\": \"\",      \"duties\": []    }  ],  \"educations\": [    {      \"school_name\": \"\",      \"location\": \"\",      \"type\": \"\",      \"graduation\": \"\"    }  ],  \"score\": \"\",  “scoreReason: \"\", \"recruiter_summary\": \"\"}"
-	var prompt = "redo resume in give json object with corrected grammar, punctuation, corrected formatting, and with only 4-5 duties per experience, also list all educations and certifications. If skills are empty, generate 4-5 skills.  Give a final scoring of resume against the job description given. also create a short paragraph summary based on resume and job description. limit prose. only provide json, no explanation."
+	var prompt = "redo resume in give json object with corrected grammar, punctuation, corrected formatting, and with only 4-5 duties per experience, also list all educations and certifications. Make sure all dates are formatted the same. If skills are empty, generate 6 skills, otherwise give me the top 6 based on job description.  Give a final scoring of resume against the job description given. also create a short paragraph summary based on resume and job description. limit prose. only provide json, no explanation."
 	var builtPrompt = jsonObject + "\n\nResume: \n" + resume + "\n\nJob Description: \n" + resumeReviewBind.JobDescription + "\n\n\n" + prompt
 
 	// Set OpenAI Prompts
@@ -79,18 +79,23 @@ func ParseResume(res string) (string, error) {
 	}
 
 	var resume = strings.Replace(res, "data:application/pdf;base64,", "", -1)
-	var uuid = uuid.New().String()
+	var _uuid = uuid.New().String()
 
 	dec, err := base64.StdEncoding.DecodeString(resume)
 	if err != nil {
 		return "", err
 	}
 
-	f, err := os.Create(uuid + ".pdf")
+	f, err := os.Create(_uuid + ".pdf")
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+
+		}
+	}(f)
 
 	if _, err := f.Write(dec); err != nil {
 		return "", err
@@ -100,7 +105,7 @@ func ParseResume(res string) (string, error) {
 	}
 
 	// Read PDF
-	r, err := pdf.Open(uuid + ".pdf")
+	r, err := pdf.Open(_uuid + ".pdf")
 	if err != nil {
 		return "", err
 	}
@@ -112,7 +117,7 @@ func ParseResume(res string) (string, error) {
 	}
 	buf.ReadFrom(b)
 
-	err = os.Remove(uuid + ".pdf")
+	err = os.Remove(_uuid + ".pdf")
 	if err != nil {
 		return "", err
 	}

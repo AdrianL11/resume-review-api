@@ -52,7 +52,7 @@ func CreateForgotPassword(c echo.Context, emailAddress string) error {
 	aws_ses.SendEmailSES(
 		email_templates.ForgotPasswordTemplate("https://"+os.Getenv("base_url")+"/resetpassword/"+token, c.Request().UserAgent(), c.RealIP()),
 		"Resume Reviewer - Forgot Password",
-		"no-reply@trustp.pl",
+		"no-reply@vdart.ai",
 		aws_ses.Recipient{
 			ToEmails: []string{emailAddress},
 		},

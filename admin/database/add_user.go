@@ -37,7 +37,7 @@ func AddUser(currentUser primitive.ObjectID, emailAddress string, role mongodb.R
 	// Send Email
 	objId := result.InsertedID.(primitive.ObjectID)
 
-	aws_ses.SendEmailSES(email_templates.NewUserEmail("https://"+os.Getenv("base_url")+"/accept-invite/"+objId.Hex()), "You have been invited to Resume Reviewer!", "no-reply@trustp.pl", aws_ses.Recipient{
+	aws_ses.SendEmailSES(email_templates.NewUserEmail("https://"+os.Getenv("base_url")+"/acceptinvite/"+objId.Hex()), "You have been invited to Resume Reviewer!", "no-reply@vdart.ai", aws_ses.Recipient{
 		ToEmails: []string{emailAddress},
 	})
 

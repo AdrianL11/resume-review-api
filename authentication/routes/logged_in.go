@@ -3,14 +3,11 @@ package authentication_routes
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	session_db "resume-review-api/session/database"
+	authentication_db "resume-review-api/authentication/database"
 )
 
 func LoggedIn(c echo.Context) error {
-
-	if session_db.ValidateSession(c) == nil {
-		return c.NoContent(http.StatusOK)
-	} else {
-		return c.NoContent(http.StatusUnauthorized)
-	}
+	return c.JSON(http.StatusOK, map[string]string{
+		"role": authentication_db.LoggedIn(c),
+	})
 }

@@ -42,7 +42,7 @@ func Login(c echo.Context) error {
 
 	sess.Options = &sessions.Options{
 		MaxAge: 3600 * 24 * 14, // 14 Days
-		// Domain: "*.trustp.pl",
+		// Domain: "localhost:5173",
 		// Secure: true,
 		// HttpOnly: true,
 		Path: "/",
