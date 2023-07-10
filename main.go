@@ -48,6 +48,7 @@ func main() {
 	e.POST("/forgot_password", authentication_routes.ForgotPassword)
 	e.POST("/forgot_password_validate", authentication_routes.ForgotPasswordValidate)
 	e.POST("/reset_password", authentication_routes.ResetPassword)
+	e.GET("/logged_in", authentication_routes.LoggedIn)
 
 	// Profile Routes
 	e.GET("/profile", profile_routes.GetProfile)
