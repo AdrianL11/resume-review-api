@@ -6,14 +6,14 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"os"
 	"resume-review-api/mongodb"
 	"time"
 )
 
 type SessionValidation struct {
-	Expiration primitive.Timestamp     `bson:"expiration" json:"expiration"`
+	Expiration time.Time               `bson:"expiration" json:"expiration"`
 	UserInfo   []SessionValidationUser `bson:"result" json:"result"`
 }
 
@@ -24,7 +24,7 @@ type SessionValidationUser struct {
 func ValidateSession(c echo.Context) error {
 
 	// Check if Session is Valid from Cookie
-	sess, err := session.Get("_resumereview-tpl", c)
+	sess, err := session.Get(os.Getenv("session_name"), c)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func ValidateSession(c echo.Context) error {
 	}
 
 	// Aggregate Groups Created, Lets Look Up
-	err = mongodb.Aggregate("resume_reviewer", "sessions", mongo.Pipeline{matchStage, lookupStage}, &mongoUser)
+	err = mongodb.Aggregate(os.Getenv("db_name"), "sessions", mongo.Pipeline{matchStage, lookupStage}, &mongoUser)
 	if err != nil {
 		fmt.Printf("Aggregate Error: %s\n", err.Error())
 		return err
@@ -76,7 +76,7 @@ func ValidateSession(c echo.Context) error {
 	}
 
 	// Is Session Expired?
-	expiration := time.Unix(int64(mongoUser[0].Expiration.T), 0).UTC()
+	expiration := mongoUser[0].Expiration
 	now := time.Now().UTC()
 
 	if now.After(expiration) {
@@ -92,10 +92,10 @@ func ValidateSession(c echo.Context) error {
 	filter := bson.D{{"session_id", sessionId}}
 	update := bson.D{
 		{"lastseen_ip", c.RealIP()},
-		{"last_seen", primitive.Timestamp{T: uint32(time.Now().UTC().Unix())}},
+		{"last_seen", time.Now().UTC()},
 		{"user_agent", c.Request().UserAgent()},
 	}
-	err = mongodb.UpdateOne("resume_reviewer", "sessions", filter, update)
+	err = mongodb.UpdateOne(os.Getenv("db_name"), "sessions", filter, update)
 	if err != nil {
 		return err
 	}

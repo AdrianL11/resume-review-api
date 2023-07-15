@@ -3,6 +3,7 @@ package authentication_db
 import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
+	"os"
 	"resume-review-api/mongodb"
 	"resume-review-api/util"
 )
@@ -34,7 +35,7 @@ func ResetPassword(token string, password string) error {
 	hashedPassword, _ := util.HashPassword(password)
 	filter := bson.D{{"_id", userId}}
 	update := bson.D{{"password", hashedPassword}}
-	err = mongodb.UpdateOne("resume_reviewer", "users", filter, update)
+	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
 	if err != nil {
 		return err
 	}
@@ -42,7 +43,7 @@ func ResetPassword(token string, password string) error {
 	// Update Forgot Password Active
 	filter = bson.D{{"token", token}}
 	update = bson.D{{"is_active", false}}
-	err = mongodb.UpdateOne("resume_reviewer", "forgot_passwords", filter, update)
+	err = mongodb.UpdateOne(os.Getenv("db_name"), "forgot_passwords", filter, update)
 	if err != nil {
 		return err
 	}

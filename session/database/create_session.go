@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 	"resume-review-api/mongodb"
 	"time"
 )
@@ -13,7 +13,7 @@ import (
 func CreateSession(c echo.Context) error {
 
 	// Get Session
-	sess, err := session.Get("_resumereview-tpl", c)
+	sess, err := session.Get(os.Getenv("session_name"), c)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func CreateSession(c echo.Context) error {
 	// Get User Profile from Email Address
 	var profile mongodb.Profile
 	filter := bson.D{{"email_address", sessionEmail}}
-	err = mongodb.FindOne("resume_reviewer", "users", filter, &profile)
+	err = mongodb.FindOne(os.Getenv("db_name"), "users", filter, &profile)
 	if err != nil {
 		return err
 	}
@@ -47,14 +47,14 @@ func CreateSession(c echo.Context) error {
 		ID:         sessionId,
 		LoggedInIP: c.RealIP(),
 		LastSeenIP: c.RealIP(),
-		Expiration: primitive.Timestamp{T: uint32(time.Now().UTC().Add(time.Hour * 24 * 14).Unix())},
-		LastSeen:   primitive.Timestamp{T: uint32(time.Now().UTC().Unix())},
+		Expiration: time.Now().UTC().Add(time.Hour * 24 * 14),
+		LastSeen:   time.Now().UTC(),
 		Active:     true,
 		UserAgent:  c.Request().UserAgent(),
 		UserId:     profile.ID,
 	}
 
-	if _, err := mongodb.NewDocument("resume_reviewer", "sessions", doc); err != nil {
+	if _, err := mongodb.NewDocument(os.Getenv("db_name"), "sessions", doc); err != nil {
 		return err
 	}
 

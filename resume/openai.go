@@ -12,7 +12,7 @@ import (
 
 func CreateGPTRequest(messages []Message) (string, error) {
 
-	var model = "gpt-3.5-turbo-16k"
+	var model = os.Getenv("gpt_verison")
 	var URL = "https://api.openai.com/v1/chat/completions"
 
 	jsonData, err := json.Marshal(JSONData{
@@ -79,6 +79,6 @@ type Choice struct {
 }
 
 type Usage struct {
-	PromptTokens     int `json:"prompt_tokens"'`
+	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
 }

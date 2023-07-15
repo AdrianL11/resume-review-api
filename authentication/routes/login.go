@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
 	authentication_db "resume-review-api/authentication/database"
 	session_db "resume-review-api/session/database"
 )
@@ -35,7 +36,7 @@ func Login(c echo.Context) error {
 	}
 
 	// Found, Create Session
-	sess, err := session.Get("_resumereview-tpl", c)
+	sess, err := session.Get(os.Getenv("session_name"), c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -43,8 +44,8 @@ func Login(c echo.Context) error {
 	sess.Options = &sessions.Options{
 		MaxAge: 3600 * 24 * 14, // 14 Days
 		// Domain: "localhost:5173",
-		// Secure: true,
-		// HttpOnly: true,
+		//Secure:   true,
+		//HttpOnly: true,
 		Path: "/",
 		//SameSite: http.SameSiteStrictMode,
 	}

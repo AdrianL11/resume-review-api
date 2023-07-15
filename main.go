@@ -37,7 +37,7 @@ func main() {
 	// CORS Setup
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowMethods: []string{http.MethodPost, http.MethodGet},
-		AllowOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowOrigins: []string{"http://" + os.Getenv("base_url"), "https://" + os.Getenv("base_url")},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
@@ -50,7 +50,7 @@ func main() {
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Version v 1.0.1")
+		return c.String(http.StatusOK, fmt.Sprintf("Version: %s", os.Getenv("api_version")))
 	})
 
 	// Authentication Routes

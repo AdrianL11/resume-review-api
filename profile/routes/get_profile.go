@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
 	"resume-review-api/mongodb"
 	session_db "resume-review-api/session/database"
 )
@@ -17,7 +18,7 @@ func GetProfile(c echo.Context) error {
 	}
 
 	// Session is Valid, Return Profile
-	sess, err := session.Get("_resumereview-tpl", c)
+	sess, err := session.Get(os.Getenv("session_name"), c)
 	if err != nil {
 		return c.NoContent(http.StatusUnauthorized)
 	}

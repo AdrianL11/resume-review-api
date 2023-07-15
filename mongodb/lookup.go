@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 )
 
 func GetUserIdByEmail(emailAddress string) (primitive.ObjectID, error) {
@@ -52,7 +53,7 @@ func GetProfilebyUserId(id primitive.ObjectID) (Profile, error) {
 	var profile Profile
 	filter := bson.D{{"_id", id}}
 
-	err := FindOne("resume_reviewer", "users", filter, &profile)
+	err := FindOne(os.Getenv("db_name"), "users", filter, &profile)
 	if err != nil {
 		return profile, err
 	}
@@ -65,7 +66,7 @@ func GetProfileBySession(c echo.Context) (Profile, error) {
 	var profile Profile
 
 	// Get Session Data
-	sess, err := session.Get("_resumereview-tpl", c)
+	sess, err := session.Get(os.Getenv("session_name"), c)
 	if err != nil {
 		return profile, nil
 	}

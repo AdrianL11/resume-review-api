@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"os"
 	"resume-review-api/mongodb"
 	"resume-review-api/util"
 )
@@ -44,7 +45,7 @@ func UpdateProfile(id string, email string, firstName string, lastName string, c
 		update = append(update, bson.E{"country", country})
 	}
 
-	err := mongodb.UpdateOne("resume_reviewer", "users", filter, update)
+	err := mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

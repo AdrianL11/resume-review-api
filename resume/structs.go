@@ -1,5 +1,10 @@
 package resume
 
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
+
 type JSONObject struct {
 	Name             string       `json:"name"`
 	Email            string       `json:"email"`
@@ -10,7 +15,7 @@ type JSONObject struct {
 	Experiences      []Experience `json:"experiences"`
 	Educations       []Education  `json:"educations"`
 	Score            string       `json:"score"`
-	ScoreREason      string       `json:"scoreReason"`
+	ScoreReason      string       `json:"scoreReason"`
 	RecruiterSummary string       `json:"recruiter_summary"`
 }
 
@@ -27,4 +32,12 @@ type Education struct {
 	Location       string `json:"location"`
 	Type           string `json:"type"`
 	GraduationYear string `json:"graduation"`
+}
+
+type DBResumeReview struct {
+	UserId       primitive.ObjectID `bson:"user_id" json:"user_id"`
+	CreationDate time.Time          `bson:"creation_date" json:"creation_date"`
+	ExpiresAt    time.Time          `bson:"expires_at" json:"expires_at"`
+	ResumeInfo   JSONObject         `bson:"resume_info" json:"resume_info"`
+	ResponseTime float64            `bson:"response_time" json:"response_time"`
 }

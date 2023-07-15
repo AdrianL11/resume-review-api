@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 	"resume-review-api/mongodb"
 	"time"
 )
@@ -13,7 +13,7 @@ import (
 func UpdateLastSeen(c echo.Context) error {
 
 	// Session ID
-	sess, err := session.Get("_resumereview-tpl", c)
+	sess, err := session.Get(os.Getenv("session_name"), c)
 	if err != nil {
 		return err
 	}
@@ -27,10 +27,10 @@ func UpdateLastSeen(c echo.Context) error {
 	filter := bson.D{{"session_id", sessionId}}
 	update := bson.D{
 		{"lastseen_ip", c.RealIP()},
-		{"last_seen", primitive.Timestamp{T: uint32(time.Now().UTC().Unix())}},
+		{"last_seen", time.Now().UTC()},
 		{"user_agent", c.Request().UserAgent()},
 	}
-	err = mongodb.UpdateOne("resume_reviewer", "sessions", filter, update)
+	err = mongodb.UpdateOne(os.Getenv("db_name"), "sessions", filter, update)
 	if err != nil {
 		return err
 	}

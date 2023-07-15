@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"os"
 	aws_ses "resume-review-api/aws-ses"
 	email_templates "resume-review-api/email-templates"
@@ -39,12 +38,12 @@ func CreateForgotPassword(c echo.Context, emailAddress string) error {
 		Token:        token,
 		UserId:       userId,
 		CreationIP:   c.RealIP(),
-		CreationDate: primitive.Timestamp{T: uint32(time.Now().UTC().Unix())},
-		Expiration:   primitive.Timestamp{T: uint32(time.Now().UTC().Add(time.Hour * 24).Unix())},
+		CreationDate: time.Now().UTC(),
+		Expiration:   time.Now().UTC().Add(time.Hour * 24),
 		Active:       true,
 	}
 
-	if _, err = mongodb.NewDocument("resume_reviewer", "forgot_passwords", doc); err != nil {
+	if _, err = mongodb.NewDocument(os.Getenv("db_name"), "forgot_passwords", doc); err != nil {
 		return err
 	}
 
@@ -52,7 +51,7 @@ func CreateForgotPassword(c echo.Context, emailAddress string) error {
 	aws_ses.SendEmailSES(
 		email_templates.ForgotPasswordTemplate("https://"+os.Getenv("base_url")+"/resetpassword/"+token, c.Request().UserAgent(), c.RealIP()),
 		"Resume Reviewer - Forgot Password",
-		"no-reply@vdart.ai",
+		os.Getenv("from_email"),
 		aws_ses.Recipient{
 			ToEmails: []string{emailAddress},
 		},

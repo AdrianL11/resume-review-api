@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
+	"os"
 	"resume-review-api/mongodb"
 )
 
@@ -30,7 +31,7 @@ func UpdateProfile(c echo.Context) error {
 	// Validated, Update
 	profile, err := mongodb.GetProfileBySession(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
 	filter := bson.D{{"_id", profile.ID}}
@@ -52,7 +53,7 @@ func UpdateProfile(c echo.Context) error {
 		update = append(update, bson.E{"profile_image", updateProfileDetails.ProfileImage})
 	}
 
-	err = mongodb.UpdateOne("resume_reviewer", "users", filter, update)
+	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

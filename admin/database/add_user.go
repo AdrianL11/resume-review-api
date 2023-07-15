@@ -24,12 +24,12 @@ func AddUser(currentUser primitive.ObjectID, emailAddress string, role mongodb.R
 		{"email_address", emailAddress},
 		{"role", role},
 		{"created_by", currentUser},
-		{"creation_date", primitive.Timestamp{T: uint32(time.Now().UTC().Unix())}},
+		{"creation_date", time.Now().UTC()},
 		{"first_login", true},
 		{"active_user", true},
 	}
 
-	result, err := mongodb.NewDocument("resume_reviewer", "users", doc)
+	result, err := mongodb.NewDocument(os.Getenv("db_name"), "users", doc)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
 	"resume-review-api/mongodb"
 	profile_db "resume-review-api/profile/database"
 	session_db "resume-review-api/session/database"
@@ -34,7 +35,7 @@ func ChangePassword(c echo.Context) error {
 	}
 
 	// Change Password
-	sess, _ := session.Get("_resumereview-tpl", c)
+	sess, _ := session.Get(os.Getenv("session_name"), c)
 	obj, err := mongodb.GetUserIdByEmail(sess.Values["email_address"].(string))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

@@ -1,18 +1,14 @@
 package resume_routes
 
 import (
-	"bytes"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
-	"github.com/dslipak/pdf"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
+	"resume-review-api/mongodb"
 	resume2 "resume-review-api/resume"
+	resume_db "resume-review-api/resume/database"
 	session_db "resume-review-api/session/database"
-	"strings"
+	"time"
 )
 
 type ResumeReviewBind struct {
@@ -40,14 +36,23 @@ func ReviewResume(c echo.Context) error {
 	}
 
 	// Create Resume
-	resume, err := ParseResume(resumeReviewBind.Resume)
+	resume, err := resume2.ParseResume(resumeReviewBind.Resume)
 	if err != nil {
 		return err
 	}
 
+	// Get User ID
+	userId, err := mongodb.GetProfileBySession(c)
+	if err != nil {
+		return err
+	}
+
+	// Start Response Time
+	startTime := time.Now().UTC()
+
 	// Get JSON Object
 	var jsonObject = "{  \"name\": \"\",  \"email\": \"\",  \"phone\": \"\",  \"address\": \"\",  \"summary\": \"\",  \"skills\": [],  \"experiences\": [    {      \"company\": \"\",      \"location\": \"\",      \"dates\": \"\",      \"job_title\": \"\",      \"duties\": []    }  ],  \"educations\": [    {      \"school_name\": \"\",      \"location\": \"\",      \"type\": \"\",      \"graduation\": \"\"    }  ],  \"score\": \"\",  “scoreReason: \"\", \"recruiter_summary\": \"\"}"
-	var prompt = "redo resume in give json object with corrected grammar, punctuation, corrected formatting, and with only 4-5 duties per experience, also list all educations and certifications. Make sure all dates are formatted the same. If skills are empty, generate 6 skills, otherwise give me the top 6 based on job description.  Give a final scoring of resume against the job description given. also create a short paragraph summary based on resume and job description. limit prose. only provide json, no explanation."
+	var prompt = "redo resume in give json object with corrected grammar, punctuation, corrected formatting, and with only 4-5 duties per experience, also list all educations and certifications. Make sure all dates are formatted the same. If skills are empty, generate 6 skills, otherwise give me the top 6 based on job description.  Give a final scoring of resume against the job description given and any suggestions that may make the candidate look better. also create a detailed summary with experience and key accomplishments based on resume and job description. limit prose. only provide json, no explanation."
 	var builtPrompt = jsonObject + "\n\nResume: \n" + resume + "\n\nJob Description: \n" + resumeReviewBind.JobDescription + "\n\n\n" + prompt
 
 	// Set OpenAI Prompts
@@ -61,6 +66,10 @@ func ReviewResume(c echo.Context) error {
 		return err
 	}
 
+	// Get End Time & Final Response Time
+	endTime := time.Now().UTC()
+	responseTime := endTime.Sub(startTime).Seconds()
+
 	// Create Return
 	var jsonObj resume2.JSONObject
 	err = json.Unmarshal([]byte(ret), &jsonObj)
@@ -68,59 +77,12 @@ func ReviewResume(c echo.Context) error {
 		return err
 	}
 
+	// Insert Into Database
+	err = resume_db.InsertResumeReview(userId.ID, jsonObj, responseTime)
+	if err != nil {
+		return err
+	}
+
 	// Done
 	return c.JSON(http.StatusOK, jsonObj)
-}
-
-func ParseResume(res string) (string, error) {
-
-	if !strings.Contains(res, "data:application/pdf;base64,") {
-		return "", errors.New("no pdf found")
-	}
-
-	var resume = strings.Replace(res, "data:application/pdf;base64,", "", -1)
-	var _uuid = uuid.New().String()
-
-	dec, err := base64.StdEncoding.DecodeString(resume)
-	if err != nil {
-		return "", err
-	}
-
-	f, err := os.Create(_uuid + ".pdf")
-	if err != nil {
-		return "", err
-	}
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-
-		}
-	}(f)
-
-	if _, err := f.Write(dec); err != nil {
-		return "", err
-	}
-	if err := f.Sync(); err != nil {
-		return "", err
-	}
-
-	// Read PDF
-	r, err := pdf.Open(_uuid + ".pdf")
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		return "", err
-	}
-	buf.ReadFrom(b)
-
-	err = os.Remove(_uuid + ".pdf")
-	if err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }

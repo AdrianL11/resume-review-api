@@ -2,7 +2,7 @@ package session_db
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 	"resume-review-api/mongodb"
 	"time"
 )
@@ -13,9 +13,9 @@ func InvalidateSession(sessionId string) error {
 	filter := bson.D{{"session_id", sessionId}}
 	update := bson.D{
 		{"is_active", false},
-		{"revocation_date", primitive.Timestamp{T: uint32(time.Now().UTC().Unix())}},
+		{"revocation_date", time.Now().UTC()},
 	}
-	err := mongodb.UpdateOne("resume_reviewer", "sessions", filter, update)
+	err := mongodb.UpdateOne(os.Getenv("db_name"), "sessions", filter, update)
 	if err != nil {
 		return err
 	}
