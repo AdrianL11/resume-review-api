@@ -17,10 +17,16 @@ var (
 func getMongoClient() (*mongo.Client, error) {
 
 	var err error
+	var prodType = os.Getenv("prod_debug")
 
 	opts := options.Client()
-	//opts.ApplyURI("mongodb+srv://" + os.Getenv("mongodb_username") + ":" + os.Getenv("mongodb_password") + "@" + os.Getenv("mongodb_url") + "/?retryWrites=true&w=majority")
-	opts.ApplyURI("mongodb://" + os.Getenv("mongodb_url_local") + "/?retryWrites=true&w=majority")
+
+	if prodType == "production" {
+		opts.ApplyURI("mongodb+srv://" + os.Getenv("mongodb_username") + ":" + os.Getenv("mongodb_password") + "@" + os.Getenv("mongodb_url") + "/?retryWrites=true&w=majority")
+	} else {
+		opts.ApplyURI("mongodb://" + os.Getenv("mongodb_url_local") + "/?retryWrites=true&w=majority")
+	}
+
 	opts.SetConnectTimeout(30 * time.Second)
 
 	// Check If Global is Set
