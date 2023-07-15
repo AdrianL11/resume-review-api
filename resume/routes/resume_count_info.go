@@ -31,6 +31,5 @@ func GetResumeCountInfo(c echo.Context) error {
 	return c.JSON(http.StatusOK, resume.ReturnResponseResumeInfo{
 		Count:        count,
 		ResponseTime: average,
-		PerDay:       float64(count / 30),
 	})
 }
