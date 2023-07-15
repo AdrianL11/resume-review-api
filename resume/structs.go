@@ -41,3 +41,13 @@ type DBResumeReview struct {
 	ResumeInfo   JSONObject         `bson:"resume_info" json:"resume_info"`
 	ResponseTime float64            `bson:"response_time" json:"response_time"`
 }
+
+type ResumesResponse struct {
+	ResponseTime float64 `bson:"response_time" json:"response_time"`
+}
+
+type ReturnResponseResumeInfo struct {
+	Count        int     `bson:"count" json:"count"`
+	ResponseTime float64 `bson:"response_time" json:"response_time"`
+	PerDay       float64 `bson:"per_day" json:"per_day"`
+}

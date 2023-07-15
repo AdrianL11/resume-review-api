@@ -12,7 +12,7 @@ import (
 
 func CreateGPTRequest(messages []Message) (string, error) {
 
-	var model = os.Getenv("gpt_verison")
+	var model = os.Getenv("gpt_version")
 	var URL = "https://api.openai.com/v1/chat/completions"
 
 	jsonData, err := json.Marshal(JSONData{

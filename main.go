@@ -79,6 +79,7 @@ func main() {
 
 	// Resume Routes
 	e.POST("/resume/review", resume_routes.ReviewResume)
+	e.GET("/resume/counts", resume_routes.GetResumeCountInfo)
 
 	// Set Server Port
 	var port string
