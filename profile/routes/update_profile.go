@@ -49,9 +49,7 @@ func UpdateProfile(c echo.Context) error {
 		update = append(update, bson.E{"country", updateProfileDetails.Country})
 	}
 
-	if updateProfileDetails.ProfileImage != "" {
-		update = append(update, bson.E{"profile_image", updateProfileDetails.ProfileImage})
-	}
+	update = append(update, bson.E{"profile_image", updateProfileDetails.ProfileImage})
 
 	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
 	if err != nil {

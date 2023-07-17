@@ -154,6 +154,30 @@ func UpdateOne(database string, collection string, filter interface{}, update in
 	return nil
 }
 
+// UpdateMany – updates multiple documents based on filter in mongoDB
+// after retrieving client connection from getMongoClient
+func UpdateMany(database string, collection string, filter interface{}, update interface{}) error {
+
+	var err error
+	var client *mongo.Client
+	var ctx = context.Background()
+	var coll *mongo.Collection
+
+	if client, err = getMongoClient(); err != nil {
+		return err
+	}
+	//defer func(client *mongo.Client, ctx context.Context) {
+	//	_ = client.Disconnect(ctx)
+	//}(client, ctx)
+
+	coll = client.Database(database).Collection(collection)
+	if _, err = coll.UpdateMany(ctx, filter, bson.D{{"$set", update}}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Aggregate – updates a document based on filter in mongoDB
 // after retrieving client connection from getMongoClient
 func Aggregate(database string, collection string, pipeline interface{}, results interface{}) error {

@@ -72,6 +72,7 @@ func main() {
 	// Admin Routes
 	e.GET("/admin/get_profiles", admin_routes.GetUsers)
 	e.POST("/admin/get_user_sessions", admin_routes.GetUserSessions)
+	e.POST("/admin/invalidate_user_sessions", admin_routes.InvalidateUserSessions)
 	e.POST("/admin/get_profile", admin_routes.GetProfileById)
 	e.POST("/admin/update_profile", admin_routes.UpdateProfile)
 	e.POST("/admin/deactivate_user", admin_routes.DeactivateUser)
