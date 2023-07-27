@@ -13,6 +13,11 @@ import (
 
 func GetImageCDNURL(base64Image string) (string, error) {
 
+	// Check if Image is blank?
+	if base64Image == "" {
+		return "", nil
+	}
+
 	// Step 1: Get Image Info
 	imageType := strings.Split(base64Image, ";base64,")[0]
 	image, _ := base64.StdEncoding.DecodeString(strings.Split(base64Image, ";base64,")[1])
