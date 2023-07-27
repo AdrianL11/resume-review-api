@@ -13,7 +13,7 @@ type UpdateProfileDetails struct {
 	FirstName    string `json:"first_name" validate:"omitempty"`
 	LastName     string `json:"last_name" validate:"omitempty"`
 	Country      string `json:"country" validate:"omitempty"`
-	ProfileImage string `json:"profile_image" validate:"omitempty"`
+	ProfileImage string `json:"profile_image"`
 }
 
 func UpdateProfile(c echo.Context) error {
