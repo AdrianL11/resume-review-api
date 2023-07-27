@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"resume-review-api/mongodb"
+	profile_util "resume-review-api/profile/util"
 	"resume-review-api/util"
 )
 
@@ -29,7 +30,13 @@ func UpdateProfile(id string, email string, firstName string, lastName string, c
 	}
 
 	if profileImage != "" {
-		update = append(update, bson.E{"profile_image", profileImage})
+
+		image, err := profile_util.GetImageCDNURL(profileImage)
+		if err != nil {
+			update = append(update, bson.E{"profile_image", ""})
+		} else {
+			update = append(update, bson.E{"profile_image", image})
+		}
 	}
 
 	if role != "" {

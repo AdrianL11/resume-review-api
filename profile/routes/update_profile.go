@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"resume-review-api/mongodb"
+	profile_util "resume-review-api/profile/util"
 )
 
 type UpdateProfileDetails struct {
@@ -49,7 +50,12 @@ func UpdateProfile(c echo.Context) error {
 		update = append(update, bson.E{"country", updateProfileDetails.Country})
 	}
 
-	update = append(update, bson.E{"profile_image", updateProfileDetails.ProfileImage})
+	image, err := profile_util.GetImageCDNURL(updateProfileDetails.ProfileImage)
+	if err != nil {
+		update = append(update, bson.E{"profile_image", ""})
+	} else {
+		update = append(update, bson.E{"profile_image", image})
+	}
 
 	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
 	if err != nil {
