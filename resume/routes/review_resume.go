@@ -2,6 +2,7 @@ package resume_routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"resume-review-api/mongodb"
@@ -14,6 +15,9 @@ import (
 type ResumeReviewBind struct {
 	Resume         string `json:"resume"`
 	JobDescription string `json:"job_description"`
+	Condense       bool   `json:"condense"`
+	SkillCount     int    `json:"skill_count"`
+	JobDutyCount   int    `json:"job_duty_count"`
 }
 
 func ReviewResume(c echo.Context) error {
@@ -36,7 +40,23 @@ func ReviewResume(c echo.Context) error {
 	}
 
 	// Create Resume
-	resume, err := resume2.ParseResume(resumeReviewBind.Resume)
+	mimeType, err := resume2.GetMimeType(resumeReviewBind.Resume)
+	if err != nil {
+		return err
+	}
+
+	resume, err := resume2.ConvertToPlainText(resumeReviewBind.Resume, mimeType)
+	if err != nil {
+		return err
+	}
+
+	// Create Job Description
+	mimeType, err = resume2.GetMimeType(resumeReviewBind.JobDescription)
+	if err != nil {
+		return err
+	}
+
+	jobDescription, err := resume2.ConvertToPlainText(resumeReviewBind.JobDescription, mimeType)
 	if err != nil {
 		return err
 	}
@@ -52,17 +72,54 @@ func ReviewResume(c echo.Context) error {
 
 	// Get JSON Object
 	var jsonObject = "{  \"name\": \"\",  \"email\": \"\",  \"phone\": \"\",  \"address\": \"\",  \"summary\": \"\",  \"skills\": [],  \"experiences\": [    {      \"company\": \"\",      \"location\": \"\",      \"dates\": \"\",      \"job_title\": \"\",      \"duties\": []    }  ],  \"educations\": [    {      \"school_name\": \"\",      \"location\": \"\",      \"type\": \"\",      \"graduation\": \"\"    }  ],  \"score\": \"\",  “scoreReason: \"\", \"recruiter_summary\": \"\"}"
-	var prompt = "redo resume in give json object with corrected grammar, punctuation, corrected formatting, and with only 4-5 duties per experience, also list all educations and certifications. Make sure all dates are formatted the same. If skills are empty, generate 6 skills, otherwise give me the top 6 based on job description.  Give a final scoring of resume against the job description given and any suggestions that may make the candidate look better. also create a detailed summary with experience and key accomplishments based on resume and job description. limit prose. only provide json, no explanation."
-	var builtPrompt = jsonObject + "\n\nResume: \n" + resume + "\n\nJob Description: \n" + resumeReviewBind.JobDescription + "\n\n\n" + prompt
+	var tasks = fmt.Sprintf("1. CORRECT grammar, punctuation, and spelling mistakes. \n2. Correct capitalization mistakes.\n3. Format dates with full spelling of the month and correct and SPACING consistent.\n4. Return ALL education certifications. List degrees from highest to lowest. Return maximum 10 most recent work history in chronological order regardless of job description. \n5. List a maximum of %d job duties per work history.\n6. List a maximum of %d skills. If skills are empty, generate %d skills that align with the job description.\n7. Give a final scoring of resume against the job description given and any suggestions that may make the candidate look better.\n8. Create a detailed summary with experience and key accomplishments based on resume and job description and use gender-neutral terms that a recruiter can send to a hiring manager.\n9. Always return a recruiter summary.\n10. Put into given json object.\n11. limit prose.\n12. only provide json, no explanation.\n", resumeReviewBind.JobDutyCount, resumeReviewBind.SkillCount, resumeReviewBind.SkillCount)
+	var options = ""
+
+	if resumeReviewBind.Condense {
+		options = "1. Condense Resume\n"
+	} else {
+		options = "1. DO NOT CONDENSE Resume\n"
+	}
+
+	// Tests
+	fmt.Println("Job Description: \n\n" + jobDescription)
+	fmt.Println("Resume: \n\n" + resume)
+	fmt.Println("JSON Object: \n\n" + jsonObject)
+	fmt.Println("Tasks: \n\n" + tasks)
+	fmt.Println("Options: \n\n" + options)
 
 	// Set OpenAI Prompts
 	ret, err := resume2.CreateGPTRequest([]resume2.Message{
 		{
+			Role:    "system",
+			Content: "You are a very experienced resume reviewer with over 20 years of experience. Read carefully and be very thorough. This is a important task. Be professional. Ensure that you return all work history.",
+		},
+		{
 			Role:    "user",
-			Content: builtPrompt,
+			Content: "Job Description: \n\n" + jobDescription,
+		},
+		{
+			Role:    "user",
+			Content: "Resume: \n\n" + resume,
+		},
+		{
+			Role:    "user",
+			Content: "JSON Object: \n\n" + jsonObject,
+		},
+		{
+			Role:    "user",
+			Content: "Tasks: \n\n" + tasks,
+		},
+		{
+			Role:    "user",
+			Content: "Tasks: \n\n" + options,
 		},
 	})
+
+	fmt.Println(ret)
+
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
 

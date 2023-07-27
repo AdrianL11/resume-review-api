@@ -3,7 +3,8 @@ package resume
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -34,7 +35,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 	}
 
 	client := &http.Client{
-		Timeout: 120 * time.Second,
+		Timeout: time.Minute * 5,
 	}
 
 	response, err := client.Do(req)
@@ -43,7 +44,9 @@ func CreateGPTRequest(messages []Message) (string, error) {
 		return "", err
 	}
 
-	resBody, err := ioutil.ReadAll(response.Body)
+	resBody, err := io.ReadAll(response.Body)
+
+	fmt.Println(string(resBody))
 
 	if err != nil {
 		return "", err
@@ -60,8 +63,9 @@ func CreateGPTRequest(messages []Message) (string, error) {
  *-----------------------------------------------------------------------*/
 
 type JSONData struct {
-	Model    string    `json:"model"`
-	Messages []Message `json:"messages"`
+	Model       string    `json:"model"`
+	Messages    []Message `json:"messages"`
+	Temperature float64   `json:"temperature"`
 }
 
 type Message struct {

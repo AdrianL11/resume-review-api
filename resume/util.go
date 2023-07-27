@@ -2,63 +2,60 @@ package resume
 
 import (
 	"bytes"
+	"code.sajari.com/docconv"
 	"encoding/base64"
 	"errors"
-	"github.com/dslipak/pdf"
-	"github.com/google/uuid"
-	"os"
+	"fmt"
 	"strings"
 )
 
-func ParseResume(res string) (string, error) {
+func ConvertToPlainText(base64Input string, mimeType string) (string, error) {
 
-	if !strings.Contains(res, "data:application/pdf;base64,") {
-		return "", errors.New("no pdf found")
+	// MimeTypes
+	pdfMimeType := "application/pdf"
+	docMimeType := "application/msword"
+	docxMimeType := "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+	// Is MimeType Allowed, PDF, DOC, DOCX
+	if mimeType != pdfMimeType && mimeType != docxMimeType && mimeType != docMimeType {
+		return "", errors.New("mimetype not allowed")
 	}
 
-	var resume = strings.Replace(res, "data:application/pdf;base64,", "", -1)
-	var _uuid = uuid.New().String()
+	// MimeType Accepted
+	base64Data := strings.Replace(base64Input, fmt.Sprintf("data:%s;base64,", mimeType), "", -1)
 
-	dec, err := base64.StdEncoding.DecodeString(resume)
+	// Decode Base64
+	decodedData, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
 		return "", err
 	}
 
-	f, err := os.Create(_uuid + ".pdf")
-	if err != nil {
-		return "", err
-	}
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-
-		}
-	}(f)
-
-	if _, err := f.Write(dec); err != nil {
-		return "", err
-	}
-	if err := f.Sync(); err != nil {
-		return "", err
-	}
-
-	// Read PDF
-	r, err := pdf.Open(_uuid + ".pdf")
+	// Read Document
+	reader := bytes.NewReader(decodedData)
+	res, err := docconv.Convert(reader, mimeType, true)
 	if err != nil {
 		return "", err
 	}
 
-	var buf bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		return "", err
-	}
-	buf.ReadFrom(b)
+	return res.Body, nil
+}
 
-	err = os.Remove(_uuid + ".pdf")
-	if err != nil {
-		return "", err
+func GetMimeType(base64Input string) (string, error) {
+
+	var mimeType = ""
+
+	if !strings.HasPrefix(base64Input, "data:") {
+		return mimeType, errors.New("not a base64 data uri")
 	}
 
-	return buf.String(), nil
+	mimeType = strings.TrimPrefix(base64Input, "data:")
+	splitString := strings.Split(mimeType, ";")
+
+	if len(splitString) < 0 {
+		return "", errors.New("not a base64 data uri")
+	}
+
+	mimeType = strings.Split(mimeType, ";")[0]
+
+	return mimeType, nil
 }
