@@ -47,10 +47,8 @@ func GetImageCDNURL(base64Image string) (string, error) {
 		Bucket: aws.String("resume-reviewer-cdn"),         // The path to the directory you want to upload the object to, starting with your Space name.
 		Key:    aws.String("profile-images/" + imageLink), // Object key, referenced whenever you want to access this file later.
 		Body:   strings.NewReader(string(image)),          // The object's contents.
-		ACL:    aws.String("private"),                     // Defines Access-control List (ACL) permissions, such as private or public.
-		Metadata: map[string]*string{ // Required. Defines metadata tags.
-			"x-amz-meta-my-key": aws.String("_rrtrustppl"),
-		},
+		ACL:    aws.String("public-read"),                 // Defines Access-control List (ACL) permissions, such as private or public.
+
 	}
 
 	// Step 5: Run the PutObject function with your parameters, catching for errors.

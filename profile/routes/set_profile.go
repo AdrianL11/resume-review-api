@@ -13,7 +13,7 @@ type SetProfileDetails struct {
 	FirstName    string `json:"first_name" validate:"required"`
 	LastName     string `json:"last_name" validate:"required"`
 	Country      string `json:"country" validate:"required"`
-	ProfileImage string `json:"profile_image" validate:"required"`
+	ProfileImage string `json:"profile_image" validate:"omitempty,required"`
 }
 
 func SetProfile(c echo.Context) error {
