@@ -1,6 +1,0 @@
-name: resume-review-api
-services:
-  - name: web
-    github:
-      repo: adrianl11/resume-review-api
-      branch: main

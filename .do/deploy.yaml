@@ -5,3 +5,4 @@ spec:
       git:
         branch: main
         repo_clone_url: https://github.com/AdrianL11/resume-review-api.git
+      dockerfile_path: Dockerfile
