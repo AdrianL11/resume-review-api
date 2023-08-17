@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -22,6 +23,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 	})
 
 	if err != nil {
+		log.Println("[OpenAI] " + err.Error())
 		return "", err
 	}
 
@@ -31,6 +33,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
+		log.Println("[OpenAI] " + err.Error())
 		return "", err
 	}
 
@@ -41,6 +44,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 	response, err := client.Do(req)
 
 	if err != nil {
+		log.Println("[OpenAI] " + err.Error())
 		return "", err
 	}
 
@@ -49,6 +53,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 	fmt.Println(string(resBody))
 
 	if err != nil {
+		log.Println("[OpenAI] " + err.Error())
 		return "", err
 	}
 
