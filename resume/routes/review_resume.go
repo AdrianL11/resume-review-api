@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 	"resume-review-api/mongodb"
 	resume2 "resume-review-api/resume"
@@ -25,6 +26,7 @@ func ReviewResume(c echo.Context) error {
 	// Create Resume Review Bind
 	var resumeReviewBind ResumeReviewBind
 	if err := c.Bind(&resumeReviewBind); err != nil {
+		log.Println("[Review Resume] Binding - " + err.Error())
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
@@ -36,34 +38,40 @@ func ReviewResume(c echo.Context) error {
 	// Is Session Valid
 	err := session_db.ValidateSession(c)
 	if err != nil {
+		log.Println("[Review Resume] Valid Session - " + err.Error())
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	// Create Resume
 	mimeType, err := resume2.GetMimeType(resumeReviewBind.Resume)
 	if err != nil {
+		log.Println("[Review Resume] Create Resume - " + err.Error())
 		return err
 	}
 
 	resume, err := resume2.ConvertToPlainText(resumeReviewBind.Resume, mimeType)
 	if err != nil {
+		log.Println("[Review Resume] Convert Resume - " + err.Error())
 		return err
 	}
 
 	// Create Job Description
 	mimeType, err = resume2.GetMimeType(resumeReviewBind.JobDescription)
 	if err != nil {
+		log.Println("[Review Resume] Create JD - " + err.Error())
 		return err
 	}
 
 	jobDescription, err := resume2.ConvertToPlainText(resumeReviewBind.JobDescription, mimeType)
 	if err != nil {
+		log.Println("[Review Resume] Convert JD - " + err.Error())
 		return err
 	}
 
 	// Get User ID
 	userId, err := mongodb.GetProfileBySession(c)
 	if err != nil {
+		log.Println("[Review Resume] Get User ID - " + err.Error())
 		return err
 	}
 
@@ -119,7 +127,7 @@ func ReviewResume(c echo.Context) error {
 	fmt.Println(ret)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println("[Review Resume] CreateGPTRequest - " + err.Error())
 		return err
 	}
 
@@ -131,12 +139,14 @@ func ReviewResume(c echo.Context) error {
 	var jsonObj resume2.JSONObject
 	err = json.Unmarshal([]byte(ret), &jsonObj)
 	if err != nil {
+		log.Println("[Review Resume] Create Return - " + err.Error())
 		return err
 	}
 
 	// Insert Into Database
 	err = resume_db.InsertResumeReview(userId.ID, jsonObj, responseTime)
 	if err != nil {
+		log.Println("[Review Resume] Insert into DB - " + err.Error())
 		return err
 	}
 
