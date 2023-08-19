@@ -122,6 +122,14 @@ func ReviewResume(c echo.Context) error {
 			Role:    "user",
 			Content: "Tasks: \n\n" + options,
 		},
+		{
+			Role:    "assistant",
+			Content: "{}",
+		},
+		{
+			Role:    "user",
+			Content: "You didnt do all the work experience. Please make sure to include every work experience. Send only the JSON object.",
+		},
 	})
 
 	fmt.Println(ret)
