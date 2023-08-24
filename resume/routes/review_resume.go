@@ -128,7 +128,7 @@ func ReviewResume(c echo.Context) error {
 		},
 		{
 			Role:    "user",
-			Content: "You didnt do all the work experience. Please make sure to include every work experience. You also didnt make the dates format consistent. Also, make sure you are giving me skills that match the job title and description. Some skills in the job description and resume may have spaces in them that make them harder to compare, but look out for those. Send only the JSON object.",
+			Content: "You didnt do all the work experience. Please make sure to include every work experience. You also didnt make the dates format consistent. Also, make sure you are giving me skills that match the job title and description. Some skills in the job description and resume may have spaces in them that make them harder to compare, but look out for those. Also make sure to add certifications under education. Send only the JSON object.",
 		},
 	})
 
