@@ -37,13 +37,18 @@ func main() {
 	// CORS Setup
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowMethods: []string{http.MethodPost, http.MethodGet},
-		AllowOrigins: []string{"http://" + os.Getenv("base_url"), "https://" + os.Getenv("base_url")},
+		AllowOrigins: []string{"https://" + os.Getenv("base_url")},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
 			echo.HeaderAccept,
 			echo.HeaderAccessControlAllowHeaders,
 			echo.HeaderAccessControlAllowOrigin,
+			echo.HeaderAcceptEncoding,
+			echo.HeaderAccessControlAllowMethods,
+			echo.HeaderAccessControlMaxAge,
+			echo.HeaderAccessControlRequestHeaders,
+			echo.HeaderAccessControlRequestMethod,
 		},
 		AllowCredentials: true,
 	}))
