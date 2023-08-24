@@ -128,7 +128,7 @@ func ReviewResume(c echo.Context) error {
 		},
 		{
 			Role:    "user",
-			Content: "You didnt do all the work experience. Please make sure to include every work experience. You also didnt make the dates format consistent. Send only the JSON object.",
+			Content: "You didnt do all the work experience. Please make sure to include every work experience. You also didnt make the dates format consistent. Also, make sure you are giving me skills that match the job title and description. Send only the JSON object.",
 		},
 	})
 
