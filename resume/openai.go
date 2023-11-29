@@ -14,11 +14,10 @@ import (
 
 func CreateGPTRequest(messages []Message) (string, error) {
 
-	var model = os.Getenv("gpt_version")
-	var URL = "https://api.openai.com/v1/chat/completions"
+	//var model = os.Getenv("gpt_version")
+	var URL = "https://vdartai.openai.azure.com/openai/deployments/" + os.Getenv("azure_deployment_name") + "/chat/completions?api-version=2023-05-15"
 
 	jsonData, err := json.Marshal(JSONData{
-		Model:    model,
 		Messages: messages,
 	})
 
@@ -29,7 +28,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 
 	req, err := http.NewRequest("POST", URL, bytes.NewBuffer(jsonData))
 
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("openai_key"))
+	req.Header.Set("api-key", os.Getenv("azure_key"))
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
