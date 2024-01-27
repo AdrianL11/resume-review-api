@@ -14,7 +14,7 @@ func GetUserIdByEmail(emailAddress string) (primitive.ObjectID, error) {
 	var profile Profile
 	filter := bson.D{{"email_address", emailAddress}, {"active_user", true}}
 
-	err := FindOne(db.Getenv("db_name"), "users", filter, &profile)
+	err := FindOne(os.Getenv("db_name"), "users", filter, &profile)
 	if err != nil {
 		return profile.ID, err
 	}
@@ -27,7 +27,7 @@ func GetUserIdByForgotPasswordToken(token string) (primitive.ObjectID, error) {
 	var forgotPasswordDetails ForgotPassword
 	filter := bson.D{{"token", token}}
 
-	err := FindOne(db.Getenv("db_name"), "forgot_passwords", filter, &forgotPasswordDetails)
+	err := FindOne(os.Getenv("db_name"), "forgot_passwords", filter, &forgotPasswordDetails)
 	if err != nil {
 		return forgotPasswordDetails.UserId, err
 	}
@@ -40,7 +40,7 @@ func GetProfilebyEmailAddress(emailAddress string) (Profile, error) {
 	var profile Profile
 	filter := bson.D{{"email_address", emailAddress}, {"active_user", true}}
 
-	err := FindOne(db.Getenv("db_name"), "users", filter, &profile)
+	err := FindOne(os.Getenv("db_name"), "users", filter, &profile)
 	if err != nil {
 		return profile, err
 	}
