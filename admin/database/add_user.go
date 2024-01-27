@@ -16,7 +16,7 @@ func AddUser(currentUser primitive.ObjectID, emailAddress string, role mongodb.R
 	// Does Email Address Already Exist?
 	profile, err := mongodb.GetUserIdByEmail(emailAddress)
 	if err == nil && profile.String() != "" {
-		return errors.New("user already exists")
+		return errors.New("user already exists in " + os.Getenv("db_name"))
 	}
 
 	// Profile Doesn't Exist, Add
