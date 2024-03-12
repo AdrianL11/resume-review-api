@@ -8,11 +8,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
-	"os"
+	admin_db "resume-review-api/admin/database"
 	admin_routes "resume-review-api/admin/routes"
+	authentication_db "resume-review-api/authentication/database"
 	authentication_routes "resume-review-api/authentication/routes"
+	profile_db "resume-review-api/profile/database"
 	profile_routes "resume-review-api/profile/routes"
+	resume_db "resume-review-api/resume/database"
 	resume_routes "resume-review-api/resume/routes"
+	"resume-review-api/resume_ai_middleware"
+	"resume-review-api/util"
+	"resume-review-api/util/resume_ai_env"
 )
 
 type CustomValidator struct {
@@ -24,6 +30,10 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func main() {
+	// Load environment variables if in development
+	resume_ai_env.LoadEnvironmentIfNeeded()
+
+	serverSettings := resume_ai_env.GetSettingsForEnv()
 
 	// Create New Echo Server
 	e := echo.New()
@@ -31,65 +41,62 @@ func main() {
 
 	// Create Session Store
 	e.Use(session.MiddlewareWithConfig(session.Config{
-		Store: sessions.NewCookieStore([]byte(os.Getenv("session_key"))),
+		Store: sessions.NewCookieStore([]byte(serverSettings.SessionKey)),
 	}))
 
 	// CORS Setup
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowMethods: []string{http.MethodPost, http.MethodGet, http.MethodOptions, http.MethodHead, http.MethodPut},
-		AllowOrigins: []string{"https://" + os.Getenv("base_url")},
-		AllowHeaders: []string{
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept,
-			echo.HeaderAccessControlAllowHeaders,
-			echo.HeaderAccessControlAllowOrigin,
-			echo.HeaderAcceptEncoding,
-			echo.HeaderAccessControlAllowMethods,
-			echo.HeaderAccessControlMaxAge,
-			echo.HeaderAccessControlRequestHeaders,
-			echo.HeaderAccessControlRequestMethod,
-		},
-		AllowCredentials: true,
-	}))
+	if resume_ai_env.IsProd() {
+		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowMethods: []string{http.MethodPost, http.MethodGet, http.MethodOptions, http.MethodHead, http.MethodPut},
+			AllowOrigins: []string{"https://" + serverSettings.BaseURL},
+			AllowHeaders: []string{
+				echo.HeaderOrigin,
+				echo.HeaderContentType,
+				echo.HeaderAccept,
+				echo.HeaderAccessControlAllowHeaders,
+				echo.HeaderAccessControlAllowOrigin,
+				echo.HeaderAcceptEncoding,
+				echo.HeaderAccessControlAllowMethods,
+				echo.HeaderAccessControlMaxAge,
+				echo.HeaderAccessControlRequestHeaders,
+				echo.HeaderAccessControlRequestMethod,
+			},
+			AllowCredentials: true,
+		}))
+	}
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, fmt.Sprintf("Version: %s", os.Getenv("api_version")))
+		return c.String(http.StatusOK, fmt.Sprintf("Version: %s", serverSettings.APIVersion))
 	})
+	// Services
+	adminDBService := admin_db.NewResumeAIAdminDBService(serverSettings)
+	profileDBService := profile_db.NewProfileDBService(serverSettings)
+	authDBService := authentication_db.NewResumeAIAuthDBService(serverSettings)
+	resumeDBService := resume_db.NewResumeDBService(serverSettings)
 
-	// Authentication Routes
-	e.POST("/login", authentication_routes.Login)
-	e.GET("/logout", authentication_routes.Logout)
-	e.POST("/forgot_password", authentication_routes.ForgotPassword)
-	e.POST("/forgot_password_validate", authentication_routes.ForgotPasswordValidate)
-	e.POST("/reset_password", authentication_routes.ResetPassword)
-	e.GET("/logged_in", authentication_routes.LoggedIn)
+	// Route handlers
+	authRouteHandler := authentication_routes.NewAuthRouteHandler(serverSettings, authDBService, adminDBService)
+	profileRouteHandler := profile_routes.NewProfileRouteHandler(serverSettings, profileDBService, authDBService)
+	adminRouteHandler := admin_routes.NewAdminRouteHandler(serverSettings)
+	resumeRouteHandler := resume_routes.NewResumeRouteHandler(serverSettings, resumeDBService)
 
-	// Profile Routes
-	e.GET("/profile", profile_routes.GetProfile)
-	e.POST("/profile/set", profile_routes.SetProfile)
-	e.GET("/profile/sessions", profile_routes.GetActiveSessions)
-	e.POST("/profile/update", profile_routes.UpdateProfile)
-	e.POST("/profile/change_password", profile_routes.ChangePassword)
-	e.POST("/new_user_validate", profile_routes.NewUserValidate)
+	// Auth Middleware
+	requireAuthedSessionMiddleware := resume_ai_middleware.RequireAuthedSession(serverSettings)
 
-	// Admin Routes
-	e.GET("/admin/get_profiles", admin_routes.GetUsers)
-	e.POST("/admin/get_user_sessions", admin_routes.GetUserSessions)
-	e.POST("/admin/invalidate_user_sessions", admin_routes.InvalidateUserSessions)
-	e.POST("/admin/get_profile", admin_routes.GetProfileById)
-	e.POST("/admin/update_profile", admin_routes.UpdateProfile)
-	e.POST("/admin/deactivate_user", admin_routes.DeactivateUser)
-	e.POST("/admin/add_user", admin_routes.AddUser)
-
-	// Resume Routes
-	e.POST("/resume/review", resume_routes.ReviewResume)
-	e.GET("/resume/counts", resume_routes.GetResumeCountInfo)
+	// Register routes
+	for _, item := range []util.RouteHandler{
+		authRouteHandler,
+		profileRouteHandler,
+		adminRouteHandler,
+		resumeRouteHandler,
+	} {
+		item.RegisterRoutes(e, requireAuthedSessionMiddleware)
+	}
 
 	// Set Server Port
 	var port string
-	if port = os.Getenv("PORT"); port == "" {
+	if port = serverSettings.Port; port == "" {
 		port = "8085"
 	}
 

@@ -1,4 +1,4 @@
-package profile_util
+package cdn
 
 import (
 	"encoding/base64"
@@ -7,12 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
-	"os"
+	"resume-review-api/util/resume_ai_env"
 	"strings"
 )
 
 func GetImageCDNURL(base64Image string) (string, error) {
-
+	serverSettings := resume_ai_env.GetSettingsForEnv()
 	// Check if Image is blank?
 	if base64Image == "" {
 		return "", nil
@@ -32,8 +32,8 @@ func GetImageCDNURL(base64Image string) (string, error) {
 	imageLink := uuid.New().String() + "." + mimeType
 
 	// Step 2: Define the parameters for the session you want to create.
-	key := os.Getenv("spaces_key")       // Access key pair. You can create access key pairs using the control panel or API.
-	secret := os.Getenv("spaces_secret") // Secret access key defined through an environment variable.
+	key := serverSettings.SpacesKey       // Access key pair. You can create access key pairs using the control panel or API.
+	secret := serverSettings.SpacesSecret // Secret access key defined through an environment variable.
 
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(key, secret, ""), // Specifies your credentials.

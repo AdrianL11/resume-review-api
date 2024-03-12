@@ -2,13 +2,12 @@ package resume_db
 
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
 	"resume-review-api/resume"
 	"time"
 )
 
-func InsertResumeReview(userId primitive.ObjectID, resumeObj resume.JSONObject, responseTime float64) error {
+func (s *ResumeDBService) InsertResumeReview(userId primitive.ObjectID, resumeObj resume.JSONObject, responseTime float64) error {
 
 	var doc = resume.DBResumeReview{
 		UserId:       userId,
@@ -18,7 +17,7 @@ func InsertResumeReview(userId primitive.ObjectID, resumeObj resume.JSONObject, 
 		ResumeInfo:   resumeObj,
 	}
 
-	_, err := mongodb.NewDocument(os.Getenv("db_name"), "resumes", doc)
+	_, err := mongodb.NewDocument(s.serverSettings.DBName, "resumes", doc)
 	if err != nil {
 		return err
 	}

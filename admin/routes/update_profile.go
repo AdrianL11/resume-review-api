@@ -5,9 +5,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	admin_db "resume-review-api/admin/database"
 	"resume-review-api/mongodb"
-	session_db "resume-review-api/session/database"
+	"resume-review-api/resume_ai_middleware"
 )
 
 type UpdateProfileDetails struct {
@@ -21,7 +20,7 @@ type UpdateProfileDetails struct {
 	Role         string `json:"role" validate:"omitempty"`
 }
 
-func UpdateProfile(c echo.Context) error {
+func (h *AdminRouteHandler) UpdateProfile(c echo.Context) error {
 
 	// Create Update Profile Details
 	var updateProfileDetails UpdateProfileDetails
@@ -34,40 +33,27 @@ func UpdateProfile(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	// Is Session Valid
-	err := session_db.ValidateSession(c)
-	if err != nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	// Session is Valid, Get Current Profile
-	profile, err := mongodb.GetProfileBySession(c)
-	if err != nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	// Check Role
-	currentRole := profile.Role
-	if profile.Role != mongodb.OwnerRole && profile.Role != mongodb.Administrator {
-		return c.NoContent(http.StatusUnauthorized)
+	viewerProfile, ok := c.Get(resume_ai_middleware.UserSessionProfile).(mongodb.Profile)
+	if !ok {
+		return echo.ErrInternalServerError
 	}
 
 	// Acceptable Role, Grab User
 	obj, err := primitive.ObjectIDFromHex(updateProfileDetails.Id)
-	profile, err = mongodb.GetProfilebyUserId(obj)
+	profile, err := h.profileDBService.GetProfileByUserId(obj)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	// Check if Current User can Change based on Role
-	if currentRole != mongodb.OwnerRole {
-		if currentRole == mongodb.Administrator && profile.Role != mongodb.User {
+	if viewerProfile.Role != mongodb.OwnerRole {
+		if viewerProfile.Role == mongodb.Administrator && profile.Role != mongodb.User {
 			return echo.NewHTTPError(http.StatusBadRequest, errors.New("unauthorized authority"))
 		}
 	}
 
 	// Can Change
-	err = admin_db.UpdateProfile(
+	err = h.adminDBService.UpdateProfile(
 		updateProfileDetails.Id,
 		updateProfileDetails.Email,
 		updateProfileDetails.FirstName,

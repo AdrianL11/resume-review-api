@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	profile_db "resume-review-api/profile/database"
 )
 
 type SetProfileDetails struct {
@@ -16,7 +15,7 @@ type SetProfileDetails struct {
 	ProfileImage string `json:"profile_image"`
 }
 
-func SetProfile(c echo.Context) error {
+func (h *ProfileRouteHandler) SetProfile(c echo.Context) error {
 
 	// Create New User Check Details
 	var setProfileDetails SetProfileDetails
@@ -30,12 +29,12 @@ func SetProfile(c echo.Context) error {
 	}
 
 	// Validated, Check if First time Logging In
-	if profile_db.NewUserValidateToken(setProfileDetails.Token) == false {
+	if h.profileService.NewUserValidateToken(setProfileDetails.Token) == false {
 		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid token information"))
 	}
 
 	// Allowed, Insert into Database
-	err := profile_db.SetProfile(
+	err := h.profileService.SetProfile(
 		setProfileDetails.Token,
 		setProfileDetails.Password,
 		setProfileDetails.FirstName,

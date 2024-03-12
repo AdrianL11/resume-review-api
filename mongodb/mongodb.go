@@ -5,26 +5,26 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
+	"resume-review-api/util/resume_ai_env"
 	"time"
 )
 
 var (
+	// This should be using sync.Once
 	globalClient *mongo.Client
 )
 
 // getMongoClient – creates a session for mongoDB
 func getMongoClient() (*mongo.Client, error) {
-
+	serverSettings := resume_ai_env.GetSettingsForEnv()
 	var err error
-	var prodType = os.Getenv("prod_debug")
 
 	opts := options.Client()
 
-	if prodType == "production" {
-		opts.ApplyURI("mongodb+srv://" + os.Getenv("mongodb_username") + ":" + os.Getenv("mongodb_password") + "@" + os.Getenv("mongodb_url") + "/?retryWrites=true&w=majority")
+	if resume_ai_env.IsProd() {
+		opts.ApplyURI("mongodb+srv://" + serverSettings.DBUsername + ":" + serverSettings.DBPassword + "@" + serverSettings.DBURL + "/?retryWrites=true&w=majority")
 	} else {
-		opts.ApplyURI("mongodb://" + os.Getenv("mongodb_url_local") + "/?retryWrites=true&w=majority")
+		opts.ApplyURI("mongodb://localhost/?retryWrites=true&w=majority")
 	}
 
 	opts.SetConnectTimeout(30 * time.Second)

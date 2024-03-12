@@ -3,14 +3,13 @@ package authentication_routes
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	authentication_db "resume-review-api/authentication/database"
 )
 
 type ForgotPasswordDetails struct {
 	Email string `json:"email_address" validate:"required"`
 }
 
-func ForgotPassword(c echo.Context) error {
+func (h *AuthRouteHandler) ForgotPassword(c echo.Context) error {
 
 	// Create Forgot Password Details
 	var forgotPasswordDetails ForgotPasswordDetails
@@ -24,7 +23,7 @@ func ForgotPassword(c echo.Context) error {
 	}
 
 	// Add Forgot Password to Database
-	err := authentication_db.CreateForgotPassword(c, forgotPasswordDetails.Email)
+	err := h.authService.CreateForgotPassword(forgotPasswordDetails.Email, c.RealIP(), c.Request().UserAgent())
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

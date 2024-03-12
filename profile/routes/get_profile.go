@@ -4,26 +4,16 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
-	"resume-review-api/mongodb"
-	session_db "resume-review-api/session/database"
 )
 
-func GetProfile(c echo.Context) error {
-
-	// Is Session Valid
-	err := session_db.ValidateSession(c)
-	if err != nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
+func (h *ProfileRouteHandler) GetProfile(c echo.Context) error {
 	// Session is Valid, Return Profile
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(h.serverSettings.SessionCookieName, c)
 	if err != nil {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	profile, err := mongodb.GetProfilebyEmailAddress(sess.Values["email_address"].(string))
+	profile, err := h.profileService.GetProfileByEmailAddress(sess.Values["email_address"].(string))
 	if err != nil {
 		return c.NoContent(http.StatusUnauthorized)
 	}

@@ -7,15 +7,16 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
+	"resume-review-api/util/resume_ai_env"
 	"strings"
 	"time"
 )
 
 func CreateGPTRequest(messages []Message) (string, error) {
+	serverSettings := resume_ai_env.GetSettingsForEnv()
 
 	//var model = os.Getenv("gpt_version")
-	var URL = "https://vdartai.openai.azure.com/openai/deployments/" + os.Getenv("azure_deployment_name") + "/chat/completions?api-version=2023-05-15"
+	var URL = "https://vdartai.openai.azure.com/openai/deployments/" + serverSettings.AzureDeploymentName + "/chat/completions?api-version=2023-05-15"
 
 	jsonData, err := json.Marshal(JSONData{
 		Messages: messages,
@@ -28,7 +29,7 @@ func CreateGPTRequest(messages []Message) (string, error) {
 
 	req, err := http.NewRequest("POST", URL, bytes.NewBuffer(jsonData))
 
-	req.Header.Set("api-key", os.Getenv("azure_key"))
+	req.Header.Set("api-key", serverSettings.AzureKey)
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {

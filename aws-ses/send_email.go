@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"log"
-	"os"
 )
 
 type Recipient struct {
@@ -16,12 +15,12 @@ type Recipient struct {
 }
 
 // SendEmailSES sends email to specified email IDs
-func SendEmailSES(messageBody string, subject string, fromEmail string, recipient Recipient) {
+func (s *EmailService) SendEmailSES(messageBody string, subject string, fromEmail string, recipient Recipient) {
 
 	// create new AWS session
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("ses_akid"), os.Getenv("ses_secret"), ""),
+		Credentials: credentials.NewStaticCredentials(s.serverSettings.SESAkid, s.serverSettings.SESSecret, ""),
 	})
 	if err != nil {
 		log.Println("Error occurred while creating aws session", err)

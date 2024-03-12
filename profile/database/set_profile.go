@@ -3,13 +3,12 @@ package profile_db
 import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
-	profile_util "resume-review-api/profile/util"
+	"resume-review-api/profile/cdn"
 	"resume-review-api/util"
 )
 
-func SetProfile(token string, password string, firstName string, lastName string, country string, profileImage string) error {
+func (s *ProfileDBService) SetProfile(token string, password string, firstName string, lastName string, country string, profileImage string) error {
 
 	// Create ObjectID
 	obj, _ := primitive.ObjectIDFromHex(token)
@@ -18,7 +17,7 @@ func SetProfile(token string, password string, firstName string, lastName string
 	hashedPassword, _ := util.HashPassword(password)
 	filter := bson.D{{"_id", obj}}
 
-	image, err := profile_util.GetImageCDNURL(profileImage)
+	image, err := cdn.GetImageCDNURL(profileImage)
 	if err != nil {
 		profileImage = ""
 	} else {
@@ -34,7 +33,7 @@ func SetProfile(token string, password string, firstName string, lastName string
 		ProfileImage: profileImage,
 	}
 
-	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, doc)
+	err = mongodb.UpdateOne(s.serverSettings.DBName, "users", filter, doc)
 	if err != nil {
 		return err
 	}

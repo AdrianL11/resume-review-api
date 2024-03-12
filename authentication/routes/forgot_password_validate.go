@@ -3,14 +3,13 @@ package authentication_routes
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	authentication_db "resume-review-api/authentication/database"
 )
 
 type ForgotPasswordValidateDetails struct {
 	Token string `json:"token" validate:"required"`
 }
 
-func ForgotPasswordValidate(c echo.Context) error {
+func (h *AuthRouteHandler) ForgotPasswordValidate(c echo.Context) error {
 
 	// Create Forgot Password Details
 	var forgotPasswordValidateDetails ForgotPasswordValidateDetails
@@ -24,7 +23,7 @@ func ForgotPasswordValidate(c echo.Context) error {
 	}
 
 	// Validated, Check
-	ret := authentication_db.ForgotPasswordValidateToken(forgotPasswordValidateDetails.Token)
+	ret := h.authService.ForgotPasswordValidateToken(forgotPasswordValidateDetails.Token)
 
 	return c.JSON(http.StatusOK, map[string]bool{
 		"valid_token": ret,

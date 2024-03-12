@@ -3,18 +3,17 @@ package resume_db
 import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
 	"resume-review-api/resume"
 )
 
-func GetResumeInfo(userId primitive.ObjectID) (int, float64, error) {
+func (s *ResumeDBService) GetResumeInfo(userId primitive.ObjectID) (int, float64, error) {
 
 	var resumeInfo []resume.ResumesResponse
 	filter := bson.D{
 		{"user_id", userId},
 	}
-	err := mongodb.FindMany(os.Getenv("db_name"), "resumes", filter, &resumeInfo)
+	err := mongodb.FindMany(s.serverSettings.DBName, "resumes", filter, &resumeInfo)
 	if err != nil {
 		return 0, 0, err
 	}

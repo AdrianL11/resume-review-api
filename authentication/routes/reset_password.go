@@ -3,7 +3,6 @@ package authentication_routes
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	authentication_db "resume-review-api/authentication/database"
 )
 
 type ResetPasswordDetails struct {
@@ -11,7 +10,7 @@ type ResetPasswordDetails struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func ResetPassword(c echo.Context) error {
+func (h *AuthRouteHandler) ResetPassword(c echo.Context) error {
 
 	// Create Reset Password Details
 	var resetPasswordDetails ResetPasswordDetails
@@ -25,7 +24,7 @@ func ResetPassword(c echo.Context) error {
 	}
 
 	// Validated, Reset Password
-	err := authentication_db.ResetPassword(resetPasswordDetails.Token, resetPasswordDetails.Password)
+	err := h.authService.ResetPassword(resetPasswordDetails.Token, resetPasswordDetails.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

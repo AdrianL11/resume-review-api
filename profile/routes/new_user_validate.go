@@ -3,14 +3,13 @@ package profile_routes
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	profile_db "resume-review-api/profile/database"
 )
 
 type NewUserCheckDetails struct {
 	Id string `json:"token" validate:"required"`
 }
 
-func NewUserValidate(c echo.Context) error {
+func (h *ProfileRouteHandler) NewUserValidate(c echo.Context) error {
 
 	// Create New User Check Details
 	var newUserCheckDetails NewUserCheckDetails
@@ -24,7 +23,7 @@ func NewUserValidate(c echo.Context) error {
 	}
 
 	// Validated, Check if First time Logging In
-	ret := profile_db.NewUserValidateToken(newUserCheckDetails.Id)
+	ret := h.profileService.NewUserValidateToken(newUserCheckDetails.Id)
 
 	return c.JSON(http.StatusOK, map[string]bool{
 		"valid_token": ret,

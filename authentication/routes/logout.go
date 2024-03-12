@@ -4,22 +4,12 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
-	session_db "resume-review-api/session/database"
 )
 
-func Logout(c echo.Context) error {
-
-	// Validate Session
-	err := session_db.ValidateSession(c)
-	if err != nil {
-		return c.JSON(http.StatusOK, map[string]string{
-			"status": "success",
-		})
-	}
+func (h *AuthRouteHandler) Logout(c echo.Context) error {
 
 	// Validated, Revoke Session
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(h.serverSettings.SessionCookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusOK, map[string]string{
 			"status": "success",
@@ -33,7 +23,7 @@ func Logout(c echo.Context) error {
 		})
 	}
 
-	err = session_db.InvalidateSession(emailAddress)
+	err = h.authService.InvalidateSession(emailAddress)
 	if err != nil {
 		return c.JSON(http.StatusOK, map[string]string{
 			"status": "success",

@@ -6,9 +6,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
-	authentication_db "resume-review-api/authentication/database"
-	session_db "resume-review-api/session/database"
+	"resume-review-api/util/resume_ai_env"
 )
 
 type LoginDetails struct {
@@ -16,7 +14,7 @@ type LoginDetails struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func Login(c echo.Context) error {
+func (h *AuthRouteHandler) Login(c echo.Context) error {
 
 	// Create Login Details
 	var loginDetails LoginDetails
@@ -30,25 +28,36 @@ func Login(c echo.Context) error {
 	}
 
 	// Check DB for Login Details
-	err := authentication_db.CheckLogin(loginDetails.Email, loginDetails.Password)
+	err := h.authService.CheckLogin(loginDetails.Email, loginDetails.Password)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	// Found, Create Session
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(h.serverSettings.SessionCookieName, c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	sess.Options = &sessions.Options{
-		MaxAge:   3600 * 24 * 14, // 14 Days
-		Domain:   "vdart.ai",
-		Secure:   true,
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+	if resume_ai_env.IsProd() {
+		sess.Options = &sessions.Options{
+			MaxAge:   3600 * 24 * 14, // 14 Days
+			Domain:   h.serverSettings.SessionCookieDomain,
+			Secure:   true,
+			HttpOnly: true,
+			Path:     "/",
+			SameSite: http.SameSiteStrictMode,
+		}
+	} else {
+		sess.Options = &sessions.Options{
+			MaxAge:   3600 * 24 * 14, // 14 Days
+			Domain:   h.serverSettings.SessionCookieDomain,
+			HttpOnly: true,
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
+		}
 	}
+
 	sess.Values["email_address"] = loginDetails.Email
 	sess.Values["session_id"] = uuid.New().String()
 	err = sess.Save(c.Request(), c.Response())
@@ -57,7 +66,7 @@ func Login(c echo.Context) error {
 	}
 
 	// Add Session to Database
-	err = session_db.CreateSession(c)
+	err = h.CreateSession(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

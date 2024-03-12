@@ -1,19 +1,18 @@
-package session_db
+package authentication_routes
 
 import (
 	"errors"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
-	"os"
 	"resume-review-api/mongodb"
 	"time"
 )
 
-func CreateSession(c echo.Context) error {
+func (h *AuthRouteHandler) CreateSession(c echo.Context) error {
 
 	// Get Session
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(h.serverSettings.SessionCookieName, c)
 	if err != nil {
 		return err
 	}
@@ -27,7 +26,7 @@ func CreateSession(c echo.Context) error {
 	// Get User Profile from Email Address
 	var profile mongodb.Profile
 	filter := bson.D{{"email_address", sessionEmail}}
-	err = mongodb.FindOne(os.Getenv("db_name"), "users", filter, &profile)
+	err = mongodb.FindOne(h.serverSettings.DBName, "users", filter, &profile)
 	if err != nil {
 		return err
 	}
@@ -54,7 +53,7 @@ func CreateSession(c echo.Context) error {
 		UserId:     profile.ID,
 	}
 
-	if _, err := mongodb.NewDocument(os.Getenv("db_name"), "sessions", doc); err != nil {
+	if _, err := mongodb.NewDocument(h.serverSettings.DBName, "sessions", doc); err != nil {
 		return err
 	}
 

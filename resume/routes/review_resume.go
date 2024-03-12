@@ -8,8 +8,7 @@ import (
 	"net/http"
 	"resume-review-api/mongodb"
 	resume2 "resume-review-api/resume"
-	resume_db "resume-review-api/resume/database"
-	session_db "resume-review-api/session/database"
+	"resume-review-api/resume_ai_middleware"
 	"time"
 )
 
@@ -21,7 +20,7 @@ type ResumeReviewBind struct {
 	JobDutyCount   int    `json:"job_duty_count"`
 }
 
-func ReviewResume(c echo.Context) error {
+func (h *ResumeRouteHandler) ReviewResume(c echo.Context) error {
 
 	// Create Resume Review Bind
 	var resumeReviewBind ResumeReviewBind
@@ -33,13 +32,6 @@ func ReviewResume(c echo.Context) error {
 	// Validate Binding
 	if err := c.Validate(resumeReviewBind); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	// Is Session Valid
-	err := session_db.ValidateSession(c)
-	if err != nil {
-		log.Println("[Review Resume] Valid Session - " + err.Error())
-		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	// Create Resume
@@ -69,10 +61,9 @@ func ReviewResume(c echo.Context) error {
 	}
 
 	// Get User ID
-	userId, err := mongodb.GetProfileBySession(c)
-	if err != nil {
-		log.Println("[Review Resume] Get User ID - " + err.Error())
-		return err
+	viewerProfile, ok := c.Get(resume_ai_middleware.UserSessionProfile).(mongodb.Profile)
+	if !ok {
+		return echo.ErrInternalServerError
 	}
 
 	// Start Response Time
@@ -152,7 +143,7 @@ func ReviewResume(c echo.Context) error {
 	}
 
 	// Insert Into Database
-	err = resume_db.InsertResumeReview(userId.ID, jsonObj, responseTime)
+	err = h.resumeDBService.InsertResumeReview(viewerProfile.ID, jsonObj, responseTime)
 	if err != nil {
 		log.Println("[Review Resume] Insert into DB - " + err.Error())
 		return err

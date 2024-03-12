@@ -2,27 +2,19 @@ package profile_routes
 
 import (
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"resume-review-api/mongodb"
-	session_db "resume-review-api/session/database"
+	"resume-review-api/resume_ai_middleware"
 )
 
-func GetActiveSessions(c echo.Context) error {
-
-	// Is Session Valid
-	err := session_db.ValidateSession(c)
-	if err != nil {
-		return c.NoContent(http.StatusUnauthorized)
-	}
-
-	// Get User Id
-	obj, err := mongodb.GetProfileBySession(c)
-	if err != nil {
+func (h *ProfileRouteHandler) GetActiveSessions(c echo.Context) error {
+	sessionID, ok := c.Get(resume_ai_middleware.UserSessionIDContextKey).(primitive.ObjectID)
+	if !ok {
 		return c.NoContent(http.StatusUnauthorized)
 	}
 
 	// Get Sessions
-	sess, err := session_db.GetSessionsById(obj.ID)
+	sess, err := h.authService.GetSessionsById(sessionID)
 	if err != nil {
 		return c.NoContent(http.StatusBadRequest)
 	}
