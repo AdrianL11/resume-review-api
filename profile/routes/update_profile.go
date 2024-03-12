@@ -4,9 +4,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
-	"os"
 	"resume-review-api/mongodb"
 	profile_util "resume-review-api/profile/util"
+	"resume-review-api/util/resume_ai_env"
 )
 
 type UpdateProfileDetails struct {
@@ -57,7 +57,7 @@ func UpdateProfile(c echo.Context) error {
 		update = append(update, bson.E{"profile_image", image})
 	}
 
-	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
+	err = mongodb.UpdateOne(resume_ai_env.GetSettingsForEnv().DBName, "users", filter, update)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

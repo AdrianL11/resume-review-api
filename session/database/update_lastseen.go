@@ -5,15 +5,15 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
-	"os"
 	"resume-review-api/mongodb"
+	"resume-review-api/util/resume_ai_env"
 	"time"
 )
 
 func UpdateLastSeen(c echo.Context) error {
 
 	// Session ID
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(resume_ai_env.GetSettingsForEnv().SessionCookieName, c)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func UpdateLastSeen(c echo.Context) error {
 		{"last_seen", time.Now().UTC()},
 		{"user_agent", c.Request().UserAgent()},
 	}
-	err = mongodb.UpdateOne(os.Getenv("db_name"), "sessions", filter, update)
+	err = mongodb.UpdateOne(resume_ai_env.GetSettingsForEnv().DBName, "sessions", filter, update)
 	if err != nil {
 		return err
 	}

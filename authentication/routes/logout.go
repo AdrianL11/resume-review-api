@@ -4,8 +4,8 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 	session_db "resume-review-api/session/database"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func Logout(c echo.Context) error {
@@ -19,7 +19,7 @@ func Logout(c echo.Context) error {
 	}
 
 	// Validated, Revoke Session
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(resume_ai_env.GetSettingsForEnv().SessionCookieName, c)
 	if err != nil {
 		return c.JSON(http.StatusOK, map[string]string{
 			"status": "success",

@@ -3,8 +3,8 @@ package session_db
 import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
+	"resume-review-api/util/resume_ai_env"
 	"time"
 )
 
@@ -19,7 +19,7 @@ func InvalidateAllSessions(userId string) error {
 		{"is_active", false},
 		{"revocation_date", time.Now().UTC()},
 	}
-	err := mongodb.UpdateMany(os.Getenv("db_name"), "sessions", filter, update)
+	err := mongodb.UpdateMany(resume_ai_env.GetSettingsForEnv().DBName, "sessions", filter, update)
 	if err != nil {
 		return err
 	}

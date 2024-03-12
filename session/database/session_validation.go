@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"os"
 	"resume-review-api/mongodb"
+	"resume-review-api/util/resume_ai_env"
 	"time"
 )
 
@@ -24,7 +24,7 @@ type SessionValidationUser struct {
 func ValidateSession(c echo.Context) error {
 
 	// Check if Session is Valid from Cookie
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(resume_ai_env.GetSettingsForEnv().SessionCookieName, c)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func ValidateSession(c echo.Context) error {
 	}
 
 	// Aggregate Groups Created, Lets Look Up
-	err = mongodb.Aggregate(os.Getenv("db_name"), "sessions", mongo.Pipeline{matchStage, lookupStage}, &mongoUser)
+	err = mongodb.Aggregate(resume_ai_env.GetSettingsForEnv().DBName, "sessions", mongo.Pipeline{matchStage, lookupStage}, &mongoUser)
 	if err != nil {
 		fmt.Printf("Aggregate Error: %s\n", err.Error())
 		return err
@@ -95,7 +95,7 @@ func ValidateSession(c echo.Context) error {
 		{"last_seen", time.Now().UTC()},
 		{"user_agent", c.Request().UserAgent()},
 	}
-	err = mongodb.UpdateOne(os.Getenv("db_name"), "sessions", filter, update)
+	err = mongodb.UpdateOne(resume_ai_env.GetSettingsForEnv().DBName, "sessions", filter, update)
 	if err != nil {
 		return err
 	}

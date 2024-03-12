@@ -1,6 +1,3 @@
-setup-dev-db:
-	RESUME_AI_ENV=development go run scripts/setup_dev_env.go
-
 run-dev-api-server:
 	RESUME_AI_ENV=development go run main.go
 

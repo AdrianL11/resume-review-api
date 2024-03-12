@@ -3,8 +3,8 @@ package authentication_db
 import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"os"
 	"resume-review-api/mongodb"
+	"resume-review-api/util/resume_ai_env"
 	"time"
 )
 
@@ -14,7 +14,7 @@ func ForgotPasswordValidateToken(token string) bool {
 	var forgotPasswordStruct mongodb.ForgotPassword
 	filter := bson.D{{"token", token}}
 
-	if err := mongodb.FindOne(os.Getenv("db_name"), "forgot_passwords", filter, &forgotPasswordStruct); err != nil {
+	if err := mongodb.FindOne(resume_ai_env.GetSettingsForEnv().DBName, "forgot_passwords", filter, &forgotPasswordStruct); err != nil {
 		fmt.Println(err.Error())
 		return false
 	}

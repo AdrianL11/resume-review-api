@@ -4,9 +4,9 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 	"resume-review-api/mongodb"
 	session_db "resume-review-api/session/database"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func GetProfile(c echo.Context) error {
@@ -18,7 +18,7 @@ func GetProfile(c echo.Context) error {
 	}
 
 	// Session is Valid, Return Profile
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(resume_ai_env.GetSettingsForEnv().SessionCookieName, c)
 	if err != nil {
 		return c.NoContent(http.StatusUnauthorized)
 	}

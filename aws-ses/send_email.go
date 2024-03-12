@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"log"
-	"os"
+	"resume-review-api/util/resume_ai_env"
 )
 
 type Recipient struct {
@@ -21,7 +21,7 @@ func SendEmailSES(messageBody string, subject string, fromEmail string, recipien
 	// create new AWS session
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("ses_akid"), os.Getenv("ses_secret"), ""),
+		Credentials: credentials.NewStaticCredentials(resume_ai_env.GetSettingsForEnv().SESAkid, resume_ai_env.GetSettingsForEnv().SESSecret, ""),
 	})
 	if err != nil {
 		log.Println("Error occurred while creating aws session", err)

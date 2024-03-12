@@ -7,12 +7,14 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"log"
 	"net/http"
-	"os"
 	admin_routes "resume-review-api/admin/routes"
 	authentication_routes "resume-review-api/authentication/routes"
 	profile_routes "resume-review-api/profile/routes"
 	resume_routes "resume-review-api/resume/routes"
+	"resume-review-api/scripts"
+	"resume-review-api/util/resume_ai_env"
 )
 
 type CustomValidator struct {
@@ -24,6 +26,18 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 }
 
 func main() {
+	// Load environment variables if in development
+	resume_ai_env.LoadEnvironmentIfNeeded()
+
+	// Setup local DB collections and default user.
+	if resume_ai_env.IsDev() {
+		err := scripts.SetupDevEnvIfNeeded()
+		if err != nil {
+			log.Fatalf("Error setting up local db %v", err)
+		}
+	}
+
+	serverSettings := resume_ai_env.GetSettingsForEnv()
 
 	// Create New Echo Server
 	e := echo.New()
@@ -31,13 +45,13 @@ func main() {
 
 	// Create Session Store
 	e.Use(session.MiddlewareWithConfig(session.Config{
-		Store: sessions.NewCookieStore([]byte(os.Getenv("session_key"))),
+		Store: sessions.NewCookieStore([]byte(serverSettings.SessionKey)),
 	}))
 
 	// CORS Setup
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowMethods: []string{http.MethodPost, http.MethodGet, http.MethodOptions, http.MethodHead, http.MethodPut},
-		AllowOrigins: []string{"https://" + os.Getenv("base_url")},
+		AllowOrigins: []string{serverSettings.BaseURL},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
@@ -55,7 +69,7 @@ func main() {
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, fmt.Sprintf("Version: %s", os.Getenv("api_version")))
+		return c.String(http.StatusOK, fmt.Sprintf("Version: %s", resume_ai_env.GetSettingsForEnv().APIVersion))
 	})
 
 	// Authentication Routes
@@ -89,7 +103,7 @@ func main() {
 
 	// Set Server Port
 	var port string
-	if port = os.Getenv("PORT"); port == "" {
+	if port = serverSettings.Port; port == "" {
 		port = "8085"
 	}
 

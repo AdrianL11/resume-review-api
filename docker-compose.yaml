@@ -7,6 +7,8 @@ services:
     restart: always
     ports:
       - "27017:27017"
+    volumes:
+      - /tmp/resume_ai/mongodb:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password

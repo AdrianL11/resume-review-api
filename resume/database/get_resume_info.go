@@ -3,9 +3,9 @@ package resume_db
 import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
 	"resume-review-api/resume"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func GetResumeInfo(userId primitive.ObjectID) (int, float64, error) {
@@ -14,7 +14,7 @@ func GetResumeInfo(userId primitive.ObjectID) (int, float64, error) {
 	filter := bson.D{
 		{"user_id", userId},
 	}
-	err := mongodb.FindMany(os.Getenv("db_name"), "resumes", filter, &resumeInfo)
+	err := mongodb.FindMany(resume_ai_env.GetSettingsForEnv().DBName, "resumes", filter, &resumeInfo)
 	if err != nil {
 		return 0, 0, err
 	}

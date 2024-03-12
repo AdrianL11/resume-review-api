@@ -61,7 +61,7 @@ func GetSettingsForEnv() ServerSettings {
 func getEnvOrPanic(name string) string {
 	val := os.Getenv(name)
 	if val == "" {
-		log.Fatal("MISSING ENV: %s", name)
+		log.Fatalf("MISSING ENV: %s", name)
 	}
 	return val
 }

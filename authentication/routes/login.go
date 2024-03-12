@@ -6,9 +6,9 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 	authentication_db "resume-review-api/authentication/database"
 	session_db "resume-review-api/session/database"
+	"resume-review-api/util/resume_ai_env"
 )
 
 type LoginDetails struct {
@@ -36,18 +36,28 @@ func Login(c echo.Context) error {
 	}
 
 	// Found, Create Session
-	sess, err := session.Get(os.Getenv("session_name"), c)
+	sess, err := session.Get(resume_ai_env.GetSettingsForEnv().SessionCookieName, c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	sess.Options = &sessions.Options{
-		MaxAge:   3600 * 24 * 14, // 14 Days
-		Domain:   "vdart.ai",
-		Secure:   true,
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+	if resume_ai_env.IsProd() {
+		sess.Options = &sessions.Options{
+			MaxAge:   3600 * 24 * 14, // 14 Days
+			Domain:   resume_ai_env.GetSettingsForEnv().SessionCookieDomain,
+			Secure:   true,
+			HttpOnly: true,
+			Path:     "/",
+			SameSite: http.SameSiteStrictMode,
+		}
+	} else {
+		sess.Options = &sessions.Options{
+			MaxAge:   3600 * 24 * 14, // 14 Days
+			Domain:   resume_ai_env.GetSettingsForEnv().SessionCookieDomain,
+			HttpOnly: true,
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
+		}
 	}
 	sess.Values["email_address"] = loginDetails.Email
 	sess.Values["session_id"] = uuid.New().String()

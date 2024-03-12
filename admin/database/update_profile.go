@@ -5,10 +5,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"os"
 	"resume-review-api/mongodb"
 	profile_util "resume-review-api/profile/util"
 	"resume-review-api/util"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func UpdateProfile(id string, email string, firstName string, lastName string, country string, profileImage string, password string, role string) error {
@@ -52,7 +52,7 @@ func UpdateProfile(id string, email string, firstName string, lastName string, c
 		update = append(update, bson.E{"country", country})
 	}
 
-	err := mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
+	err := mongodb.UpdateOne(resume_ai_env.GetSettingsForEnv().DBName, "users", filter, update)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

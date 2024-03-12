@@ -4,8 +4,8 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func GetSessionsById(id primitive.ObjectID) ([]mongodb.Session, error) {
@@ -18,7 +18,7 @@ func GetSessionsById(id primitive.ObjectID) ([]mongodb.Session, error) {
 		{"user_id", id},
 		{"is_active", true},
 	}
-	err = mongodb.FindMany(os.Getenv("db_name"), "sessions", filter, &sessions)
+	err = mongodb.FindMany(resume_ai_env.GetSettingsForEnv().DBName, "sessions", filter, &sessions)
 	if err != nil || len(sessions) <= 0 {
 		return sessions, errors.New("no results")
 	}

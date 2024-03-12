@@ -2,10 +2,11 @@ package mongodb
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
+	"resume-review-api/util/resume_ai_env"
 	"time"
 )
 
@@ -13,18 +14,16 @@ var (
 	globalClient *mongo.Client
 )
 
-// getMongoClient – creates a session for mongoDB
-func getMongoClient() (*mongo.Client, error) {
+// GetMongoClient – creates a session for mongoDB
+func GetMongoClient() (*mongo.Client, error) {
 
 	var err error
-	var prodType = os.Getenv("prod_debug")
-
 	opts := options.Client()
 
-	if prodType == "production" {
-		opts.ApplyURI("mongodb+srv://" + os.Getenv("mongodb_username") + ":" + os.Getenv("mongodb_password") + "@" + os.Getenv("mongodb_url") + "/?retryWrites=true&w=majority")
+	if resume_ai_env.IsProd() {
+		opts.ApplyURI("mongodb+srv://" + resume_ai_env.GetSettingsForEnv().DBUsername + ":" + resume_ai_env.GetSettingsForEnv().DBPassword + "@" + resume_ai_env.GetSettingsForEnv().DBURL + "/?retryWrites=true&w=majority")
 	} else {
-		opts.ApplyURI("mongodb://" + os.Getenv("mongodb_url_local") + "/?retryWrites=true&w=majority")
+		opts.ApplyURI(fmt.Sprintf("mongodb://%s:%s@localhost:27017/?retryWrites=true&w=majority", resume_ai_env.GetSettingsForEnv().DBUsername, resume_ai_env.GetSettingsForEnv().DBPassword))
 	}
 
 	opts.SetConnectTimeout(30 * time.Second)
@@ -62,7 +61,7 @@ func NewDocument(database string, collection string, document interface{}) (*mon
 	var coll *mongo.Collection
 	var result *mongo.InsertOneResult
 
-	if client, err = getMongoClient(); err != nil {
+	if client, err = GetMongoClient(); err != nil {
 		return result, err
 	}
 	//defer func(client *mongo.Client, ctx context.Context) {
@@ -86,7 +85,7 @@ func FindOne(database string, collection string, filter interface{}, decode inte
 	var ctx = context.Background()
 	var coll *mongo.Collection
 
-	if client, err = getMongoClient(); err != nil {
+	if client, err = GetMongoClient(); err != nil {
 		return err
 	}
 	//defer func(client *mongo.Client, ctx context.Context) {
@@ -108,7 +107,7 @@ func FindMany(database string, collection string, filter interface{}, decode int
 	var ctx = context.Background()
 	var coll *mongo.Collection
 
-	if client, err = getMongoClient(); err != nil {
+	if client, err = GetMongoClient(); err != nil {
 		return err
 	}
 	//defer func(client *mongo.Client, ctx context.Context) {
@@ -139,7 +138,7 @@ func UpdateOne(database string, collection string, filter interface{}, update in
 	var ctx = context.Background()
 	var coll *mongo.Collection
 
-	if client, err = getMongoClient(); err != nil {
+	if client, err = GetMongoClient(); err != nil {
 		return err
 	}
 	//defer func(client *mongo.Client, ctx context.Context) {
@@ -163,7 +162,7 @@ func UpdateMany(database string, collection string, filter interface{}, update i
 	var ctx = context.Background()
 	var coll *mongo.Collection
 
-	if client, err = getMongoClient(); err != nil {
+	if client, err = GetMongoClient(); err != nil {
 		return err
 	}
 	//defer func(client *mongo.Client, ctx context.Context) {
@@ -188,7 +187,7 @@ func Aggregate(database string, collection string, pipeline interface{}, results
 	var coll *mongo.Collection
 	var cursor *mongo.Cursor
 
-	if client, err = getMongoClient(); err != nil {
+	if client, err = GetMongoClient(); err != nil {
 		return err
 	}
 	//defer func(client *mongo.Client, ctx context.Context) {

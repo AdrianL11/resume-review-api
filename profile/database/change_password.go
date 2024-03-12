@@ -4,9 +4,9 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
 	"resume-review-api/util"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func ChangePassword(id primitive.ObjectID, oldPassword string, newPassword string) error {
@@ -14,7 +14,7 @@ func ChangePassword(id primitive.ObjectID, oldPassword string, newPassword strin
 	// Get Profile from ID
 	var oldPasswordDB mongodb.ChangePassword
 	filter := bson.D{{"_id", id}}
-	err := mongodb.FindOne(os.Getenv("db_name"), "users", filter, &oldPasswordDB)
+	err := mongodb.FindOne(resume_ai_env.GetSettingsForEnv().DBName, "users", filter, &oldPasswordDB)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func ChangePassword(id primitive.ObjectID, oldPassword string, newPassword strin
 	update := mongodb.ChangePassword{
 		Password: hashedPassword,
 	}
-	err = mongodb.UpdateOne(os.Getenv("db_name"), "users", filter, update)
+	err = mongodb.UpdateOne(resume_ai_env.GetSettingsForEnv().DBName, "users", filter, update)
 	if err != nil {
 		return err
 	}

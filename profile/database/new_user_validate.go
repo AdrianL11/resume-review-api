@@ -3,8 +3,8 @@ package profile_db
 import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"os"
 	"resume-review-api/mongodb"
+	"resume-review-api/util/resume_ai_env"
 )
 
 func NewUserValidateToken(token string) bool {
@@ -16,7 +16,7 @@ func NewUserValidateToken(token string) bool {
 	var profile mongodb.Profile
 	filter := bson.D{{"_id", obj}}
 
-	if err := mongodb.FindOne(os.Getenv("db_name"), "users", filter, &profile); err != nil {
+	if err := mongodb.FindOne(resume_ai_env.GetSettingsForEnv().DBName, "users", filter, &profile); err != nil {
 		return false
 	}
 
