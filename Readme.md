@@ -17,6 +17,6 @@
 
 
 ### Notes for Production
-- `RESUME_AI_ENV=production` env variable is requored
+- `RESUME_AI_ENV=production` env variable is required
 - `base_url` now requires a full url including https://
 - `session_cookie_domain` - now required. this is the domain cookies are created for.
