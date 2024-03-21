@@ -47,6 +47,7 @@ func Login(c echo.Context) error {
 		HttpOnly: true,
 		Path:     "/",
 	}
+
 	sess.Values["email_address"] = loginDetails.Email
 	sess.Values["session_id"] = uuid.New().String()
 	err = sess.Save(c.Request(), c.Response())
