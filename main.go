@@ -35,23 +35,7 @@ func main() {
 	}))
 
 	// CORS Setup
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowMethods: []string{http.MethodPost, http.MethodGet, http.MethodOptions, http.MethodHead, http.MethodPut},
-		AllowOrigins: []string{"https://" + os.Getenv("base_url"), "http://localhost"},
-		AllowHeaders: []string{
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept,
-			echo.HeaderAccessControlAllowHeaders,
-			echo.HeaderAccessControlAllowOrigin,
-			echo.HeaderAcceptEncoding,
-			echo.HeaderAccessControlAllowMethods,
-			echo.HeaderAccessControlMaxAge,
-			echo.HeaderAccessControlRequestHeaders,
-			echo.HeaderAccessControlRequestMethod,
-		},
-		AllowCredentials: true,
-	}))
+	e.Use(middleware.CORS())
 
 	// Base
 	e.GET("/", func(c echo.Context) error {
