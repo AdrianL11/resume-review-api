@@ -43,7 +43,7 @@ func Login(c echo.Context) error {
 
 	sess.Options = &sessions.Options{
 		MaxAge:   3600 * 24 * 14, // 14 Days
-		Domain:   "vdart.ai",
+		Domain:   ".vdart.ai",
 		HttpOnly: true,
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
