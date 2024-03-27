@@ -46,6 +46,7 @@ func Login(c echo.Context) error {
 		Domain:   ".vdart.ai",
 		HttpOnly: true,
 		Path:     "/",
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 
