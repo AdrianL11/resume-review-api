@@ -1,8 +1,9 @@
 package resume
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type JSONObject struct {
@@ -49,4 +50,8 @@ type ResumesResponse struct {
 type ReturnResponseResumeInfo struct {
 	Count        int     `bson:"count" json:"count"`
 	ResponseTime float64 `bson:"response_time" json:"response_time"`
+}
+type ReturnJobMatched struct {
+	ResumeCount int `bson:"resume_count" json:"resume_count"`
+	JobMatch    int `bson:"job_match" json:"job_match"`
 }

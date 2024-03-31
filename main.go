@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-playground/validator"
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
 	admin_routes "resume-review-api/admin/routes"
 	authentication_routes "resume-review-api/authentication/routes"
 	profile_routes "resume-review-api/profile/routes"
 	resume_routes "resume-review-api/resume/routes"
+
+	"github.com/go-playground/validator"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type CustomValidator struct {
@@ -86,6 +87,7 @@ func main() {
 	// Resume Routes
 	e.POST("/resume/review", resume_routes.ReviewResume)
 	e.GET("/resume/counts", resume_routes.GetResumeCountInfo)
+	e.GET("/resume/resumecounts", resume_routes.GetResumeMatched)
 
 	// Set Server Port
 	var port string
